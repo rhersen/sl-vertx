@@ -134,10 +134,10 @@ task javadocJar(type: Jar) {
 }
 javadocJar.dependsOn javadoc
 
-build.dependsOn sourceJar, javadocJar
+build.dependsOn sourceJar
 
 artifacts {
-  archives sourceJar, javadocJar, modZip
+  archives sourceJar, modZip
 }
 
 
