@@ -48,6 +48,6 @@ public class TrafiklabProxyTest {
 
         target.intercept(array);
 
-        verify(eventBus).send("store", "Tullinge");
+        verify(eventBus).send("store", new JsonObject(map));
     }
 }

@@ -18,6 +18,8 @@ public class TrafiklabProxy extends Verticle {
     private final TrafiklabAddress trafiklabAddress = new TrafiklabAddress();
 
     public void start() {
+        container.deployVerticle(Store.class.getName());
+
         vertx.createHttpServer()
                 .requestHandler(request -> {
                     if (request.path().startsWith("/key")) {
@@ -76,7 +78,7 @@ public class TrafiklabProxy extends Verticle {
                     if (array == null) {
                         array = new JsonArray();
                     }
-//                    intercept(array);
+                    intercept(array);
                     String encode = array.encode();
                     Buffer buffer = new Buffer(encode);
 
@@ -93,8 +95,7 @@ public class TrafiklabProxy extends Verticle {
         Optional<Object> first = stream(array.spliterator(), false).findFirst();
         if (first.isPresent()) {
             JsonObject jsonObject = (JsonObject) first.get();
-            vertx.eventBus().send("store", jsonObject.getField("StopAreaName").toString());
-            System.out.println(jsonObject.getField("SiteId").getClass() + "\t" + jsonObject.getField("StopAreaName"));
+            vertx.eventBus().send("store", jsonObject);
         }
     }
 
