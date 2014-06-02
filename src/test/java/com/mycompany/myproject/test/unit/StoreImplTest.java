@@ -7,7 +7,6 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -30,11 +29,10 @@ public class StoreImplTest {
 
     @Test
     public void shouldReturnStopAreaNameIfItHasBeenPut() throws Exception {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("SiteId", "9525");
-        map.put("StopAreaName", "Tullinge");
+        subject.put(new JsonObject(new LinkedHashMap<String, Object>() {{
+            put("9525", "Tullinge");
+        }}));
 
-        subject.put(new JsonObject(map));
         JsonArray result = subject.get(new JsonArray(asList(9525, 9527)));
 
         assertEquals("Tullinge", result.<JsonObject>get(0).getString("StopAreaName"));

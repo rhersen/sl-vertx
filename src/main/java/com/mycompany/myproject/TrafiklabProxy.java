@@ -7,6 +7,7 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
@@ -49,7 +50,7 @@ public class TrafiklabProxy extends Verticle {
         });
     }
 
-    public JsonArray getStations() {
+    private JsonArray getStations() {
         return new JsonArray(
                 asList(9510, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524, 9523, 9522, 9521, 9520));
     }
@@ -83,8 +84,11 @@ public class TrafiklabProxy extends Verticle {
     public void intercept(JsonArray array) {
         Optional<Object> first = stream(array.spliterator(), false).findFirst();
         if (first.isPresent()) {
-            JsonObject jsonObject = (JsonObject) first.get();
-            vertx.eventBus().send("store.put", jsonObject);
+            JsonObject found = (JsonObject) first.get();
+            LinkedHashMap<String, Object> entry = new LinkedHashMap<String, Object>() {{
+                put(found.getString("SiteId"), found.getString("StopAreaName"));
+            }};
+            vertx.eventBus().send("store.put", new JsonObject(entry));
         }
     }
 

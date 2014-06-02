@@ -11,7 +11,9 @@ public class StoreImpl {
     private final HashMap<String, String> map = new HashMap<>();
 
     public void put(JsonObject body) {
-        map.put(body.getString("SiteId"), body.getString("StopAreaName"));
+        body.toMap().forEach((siteId, stopAreaName) ->
+                        map.put(siteId, stopAreaName.toString())
+        );
     }
 
     public JsonArray get(JsonArray siteIds) {
