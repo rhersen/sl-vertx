@@ -1,27 +1,17 @@
 package com.mycompany.myproject;
 
-import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-public class Store extends Verticle implements Handler<Message<JsonObject>> {
-    private String key = "";
+public class Store extends Verticle {
+
+    private StoreImpl store;
 
     public void start() {
-        vertx.eventBus().registerHandler("store", this);
-    }
-
-    String get() {
-        return key;
-    }
-
-    public void put(String key) {
-        this.key = key;
-    }
-
-    public void handle(Message<JsonObject> message) {
-        JsonObject body = message.body();
-        System.out.println("received" + body);
+        store = new StoreImpl();
+        vertx.eventBus().registerHandler("store.put", (Message<JsonObject> message) -> store.put(message.body()));
+        vertx.eventBus().registerHandler("store.get", (Message<JsonArray> siteIds) -> siteIds.reply(store.get(siteIds.body())));
     }
 }

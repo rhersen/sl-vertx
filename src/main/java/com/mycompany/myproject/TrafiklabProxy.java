@@ -7,10 +7,9 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import java.util.LinkedHashMap;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
@@ -39,30 +38,20 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private void handleGetStations(HttpServerRequest request) {
-        Buffer buffer = new Buffer(
-                getStations().encode()
-        );
+        JsonArray stations = getStations();
+        vertx.eventBus().send("store.get", stations, (Message<JsonArray> message) -> {
+            Buffer buffer = new Buffer(message.body().encode());
 
-        request.response()
-                .putHeader("Content-Length", Integer.toString(buffer.length()))
-                .putHeader("Content-Type", "application/json")
-                .write(buffer);
+            request.response()
+                    .putHeader("Content-Length", Integer.toString(buffer.length()))
+                    .putHeader("Content-Type", "application/json")
+                    .write(buffer);
+        });
     }
 
     public JsonArray getStations() {
         return new JsonArray(
-                IntStream.of(9531, 9529, 9528, 9527, 9526, 9525, 9524, 9523, 9522, 9521, 9520)
-                        .mapToObj(this::wrapInObject)
-                        .toArray());
-    }
-
-    private LinkedHashMap<String, Object> wrapInObject(final Integer siteId) {
-        return new LinkedHashMap<String, Object>() {{
-            put("SiteId", siteId);
-            if (siteId == 9525) {
-                put("StopAreaName", "Tullinge");
-            }
-        }};
+                asList(9510, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524, 9523, 9522, 9521, 9520));
     }
 
     private void handleGetDeparture(HttpServerRequest request, String key) {
@@ -95,7 +84,7 @@ public class TrafiklabProxy extends Verticle {
         Optional<Object> first = stream(array.spliterator(), false).findFirst();
         if (first.isPresent()) {
             JsonObject jsonObject = (JsonObject) first.get();
-            vertx.eventBus().send("store", jsonObject);
+            vertx.eventBus().send("store.put", jsonObject);
         }
     }
 

@@ -12,10 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class TrafiklabProxyTest {
 
@@ -32,14 +29,6 @@ public class TrafiklabProxyTest {
     }
 
     @Test
-    public void getStationsReturnsIntegers() throws Exception {
-        JsonArray result = target.getStations();
-        for (Object station : result) {
-            assertEquals(JsonObject.class, station.getClass());
-        }
-    }
-
-    @Test
     public void intercept() throws Exception {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("SiteId", "9525");
@@ -48,6 +37,6 @@ public class TrafiklabProxyTest {
 
         target.intercept(array);
 
-        verify(eventBus).send("store", new JsonObject(map));
+        verify(eventBus).send("store.put", new JsonObject(map));
     }
 }
