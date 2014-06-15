@@ -6,14 +6,9 @@ import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpClientResponse;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import java.util.LinkedHashMap;
-import java.util.Optional;
-
 import static java.util.Arrays.asList;
-import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
 
@@ -31,7 +26,7 @@ public class TrafiklabProxy extends Verticle {
                         if (key == null) {
                             request.response().setStatusCode(401).end();
                         } else {
-                            handleGetDeparture(request, key);
+                            handleGetDepartures(request, key);
                         }
                     }
                 })
@@ -64,7 +59,7 @@ public class TrafiklabProxy extends Verticle {
                         9180, 9732, 9731, 9730, 9729, 9728, 9727, 9726, 9725));
     }
 
-    private void handleGetDeparture(HttpServerRequest request, String key) {
+    private void handleGetDepartures(HttpServerRequest request, String key) {
         vertx.createHttpClient()
                 .setHost("api.trafiklab.se")
                 .setSSL(true)
@@ -79,39 +74,7 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private Handler<Buffer> getBodyHandler(HttpServerRequest request) {
-        return trafiklabData -> {
-            JsonArray array = new JsonObject(trafiklabData.toString())
-                    .getObject("DPS")
-                    .getObject("Trains")
-                    .getArray("DpsTrain");
-
-            if (array == null) {
-                array = new JsonArray();
-            }
-
-            intercept(array);
-
-            Buffer buffer = new Buffer(array.encode());
-
-            request.response()
-                    .putHeader("Content-Length", Integer.toString(buffer.length()))
-                    .putHeader("Content-Type", "application/json")
-                    .write(buffer);
-        };
+        return new BodyHandler(request, vertx.eventBus());
     }
-
-    public void intercept(JsonArray array) {
-        Optional<Object> first = stream(array.spliterator(), false).findFirst();
-
-        if (first.isPresent()) {
-            JsonObject found = (JsonObject) first.get();
-
-            vertx.eventBus().send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
-                put(found.getString("SiteId"), found.getString("StopAreaName"));
-            }}));
-        }
-    }
-
 }
-
 

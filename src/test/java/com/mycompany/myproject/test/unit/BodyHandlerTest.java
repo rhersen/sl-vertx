@@ -1,9 +1,8 @@
 package com.mycompany.myproject.test.unit;
 
-import com.mycompany.myproject.TrafiklabProxy;
+import com.mycompany.myproject.BodyHandler;
 import org.junit.Before;
 import org.junit.Test;
-import org.vertx.java.core.Vertx;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
@@ -12,20 +11,18 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-public class TrafiklabProxyTest {
+public class BodyHandlerTest {
 
-    private TrafiklabProxy target;
+    private BodyHandler subject;
     private EventBus eventBus;
 
     @Before
     public void setUp() throws Exception {
-        target = new TrafiklabProxy();
-        Vertx vertx = mock(Vertx.class);
         eventBus = mock(EventBus.class);
-        when(vertx.eventBus()).thenReturn(eventBus);
-        target.setVertx(vertx);
+        subject = new BodyHandler(null, eventBus);
     }
 
     @Test
@@ -35,7 +32,7 @@ public class TrafiklabProxyTest {
             put("StopAreaName", "Tullinge");
         }};
 
-        target.intercept(new JsonArray(asList(fromTrafiklab)));
+        subject.intercept(new JsonArray(asList(fromTrafiklab)));
 
         verify(eventBus).send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
             put("9525", "Tullinge");
