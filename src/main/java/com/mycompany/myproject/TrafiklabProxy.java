@@ -81,11 +81,11 @@ public class TrafiklabProxy extends Verticle {
     private Handler<Buffer> getBodyHandler(HttpServerRequest request) {
         return trafiklabData -> {
             JsonObject jsonObject = new JsonObject(trafiklabData.toString());
-            JsonArray array = filterTrafiklabData(jsonObject);
+            JsonObject filtered = filterTrafiklabData(jsonObject);
 
-            intercept(array);
+            intercept(filtered.getArray("trains"));
 
-            Buffer buffer = new Buffer(array.encode());
+            Buffer buffer = new Buffer(filtered.encode());
 
             request.response()
                     .putHeader("Content-Length", Integer.toString(buffer.length()))
@@ -94,8 +94,8 @@ public class TrafiklabProxy extends Verticle {
         };
     }
 
-    public JsonArray filterTrafiklabData(JsonObject jsonObject) {
-        JsonArray array = jsonObject
+    public JsonObject filterTrafiklabData(JsonObject json) {
+        JsonArray array = json
                 .getObject("DPS")
                 .getObject("Trains")
                 .getArray("DpsTrain");
@@ -104,7 +104,9 @@ public class TrafiklabProxy extends Verticle {
             array = new JsonArray();
         }
 
-        return array;
+        JsonObject filtered = new JsonObject();
+        filtered.putArray("trains", array);
+        return filtered;
     }
 
     public void intercept(JsonArray array) {

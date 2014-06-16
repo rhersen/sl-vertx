@@ -53,8 +53,26 @@ public class TrafiklabProxyTest {
     public void returnsEmptyArrayIfTrainsContainsNoDpsTrains() throws Exception {
         dps.putObject("Trains", new JsonObject());
 
-        JsonArray result = subject.filterTrafiklabData(root);
+        JsonObject result = subject.filterTrafiklabData(root);
 
-        assertEquals(0, result.size());
+        assertEquals(0, result.getArray("trains").size());
+    }
+
+    @Test
+    public void returnsJsonObjectWithTrainsInJsonArray() throws Exception {
+        JsonObject dpsTrain = new JsonObject();
+        getDpsTrains().add(dpsTrain);
+
+        JsonObject result = subject.filterTrafiklabData(root);
+
+        assertEquals(1, result.getArray("trains").size());
+    }
+
+    private JsonArray getDpsTrains() {
+        JsonArray dpsTrains = new JsonArray();
+        JsonObject trains = new JsonObject();
+        trains.putArray("DpsTrain", dpsTrains);
+        dps.putObject("Trains", trains);
+        return dpsTrains;
     }
 }
