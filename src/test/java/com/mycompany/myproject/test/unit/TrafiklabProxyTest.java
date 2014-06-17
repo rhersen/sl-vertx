@@ -37,12 +37,14 @@ public class TrafiklabProxyTest {
 
     @Test
     public void intercept() throws Exception {
-        Map<String, Object> fromTrafiklab = new LinkedHashMap<String, Object>() {{
-            put("SiteId", "9525");
-            put("StopAreaName", "Tullinge");
+        Map<String, Object> trains = new LinkedHashMap<String, Object>() {{
+            put("trains", asList(new LinkedHashMap<String, Object>() {{
+                put("SiteId", "9525");
+                put("StopAreaName", "Tullinge");
+            }}));
         }};
 
-        subject.intercept(new JsonArray(asList(fromTrafiklab)));
+        subject.intercept(new JsonObject(trains));
 
         verify(eventBus).send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
             put("9525", "Tullinge");

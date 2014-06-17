@@ -83,7 +83,7 @@ public class TrafiklabProxy extends Verticle {
             JsonObject jsonObject = new JsonObject(trafiklabData.toString());
             JsonObject filtered = filterTrafiklabData(jsonObject);
 
-            intercept(filtered.getArray("trains"));
+            intercept(filtered);
 
             Buffer buffer = new Buffer(filtered.encode());
 
@@ -109,8 +109,8 @@ public class TrafiklabProxy extends Verticle {
         return filtered;
     }
 
-    public void intercept(JsonArray array) {
-        Optional<Object> first = stream(array.spliterator(), false).findFirst();
+    public void intercept(JsonObject json) {
+        Optional<Object> first = stream(json.getArray("trains").spliterator(), false).findFirst();
 
         if (first.isPresent()) {
             JsonObject found = (JsonObject) first.get();
