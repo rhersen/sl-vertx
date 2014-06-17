@@ -106,6 +106,13 @@ public class TrafiklabProxy extends Verticle {
 
         JsonObject filtered = new JsonObject();
         filtered.putArray("trains", array);
+
+        Optional<Object> first = stream(array.spliterator(), false).findFirst();
+        if (first.isPresent()) {
+            JsonObject train = (JsonObject) first.get();
+            asList("SiteId", "StopAreaName").stream().forEach(key -> filtered.putString(key, train.getString(key)));
+        }
+
         return filtered;
     }
 

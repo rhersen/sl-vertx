@@ -70,6 +70,20 @@ public class TrafiklabProxyTest {
         assertEquals(1, result.getArray("trains").size());
     }
 
+    @Test
+    public void returnsJsonObjectWithSiteIdAndStopAreaName() throws Exception {
+        JsonObject dpsTrain = new JsonObject(new LinkedHashMap<String, Object>() {{
+            put("SiteId", "9525");
+            put("StopAreaName", "Tullinge");
+        }});
+        getDpsTrains().add(dpsTrain);
+
+        JsonObject result = subject.filterTrafiklabData(root);
+
+        assertEquals("9525", result.getString("SiteId"));
+        assertEquals("Tullinge", result.getString("StopAreaName"));
+    }
+
     private JsonArray getDpsTrains() {
         JsonArray dpsTrains = new JsonArray();
         JsonObject trains = new JsonObject();
