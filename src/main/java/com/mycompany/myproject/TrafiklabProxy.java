@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.copyOfRange;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
@@ -24,7 +25,15 @@ public class TrafiklabProxy extends Verticle {
 
         vertx.createHttpServer()
                 .requestHandler(request -> {
-                    if (request.path().startsWith("/stations")) {
+                    if (request.path().equals("/favicon.ico")) {
+                        try {
+                            byte[] bytes = new byte[4096];
+                            int n = getClass().getResourceAsStream("/J.png").read(bytes);
+                            respondWith(new Buffer(copyOfRange(bytes, 0, n)), "image/png", request);
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    } else if (request.path().startsWith("/stations")) {
                         handleGetStations(request);
                     } else {
                         String key = container.config().getString("trafiklab");
@@ -44,14 +53,15 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private Handler<Message<JsonArray>> getReplyHandler(HttpServerRequest request) {
-        return (Message<JsonArray> message) -> {
-            Buffer buffer = new Buffer(message.body().encode());
+        return (Message<JsonArray> message) ->
+                respondWith(new Buffer(message.body().encode()), "application/json", request);
+    }
 
-            request.response()
-                    .putHeader("Content-Length", Integer.toString(buffer.length()))
-                    .putHeader("Content-Type", "application/json")
-                    .write(buffer);
-        };
+    private void respondWith(Buffer buffer, String contentType, HttpServerRequest request) {
+        request.response()
+                .putHeader("Content-Length", Integer.toString(buffer.length()))
+                .putHeader("Content-Type", contentType)
+                .end(buffer);
     }
 
     private JsonArray getStations() {
