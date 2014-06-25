@@ -18,9 +18,15 @@ public class StoreImpl {
         );
     }
 
-    public JsonArray get() {
+    public JsonObject get() {
         List<Integer> list = getStations().toList();
-        return new JsonArray(list.stream().map(this::wrapInObject).toArray());
+        JsonObject r = new JsonObject();
+        r.putArray("northwest", new JsonArray(list.subList(0, 8).stream().map(this::wrapInObject).toArray()));
+        r.putArray("northeast", new JsonArray(list.subList(8, 16).stream().map(this::wrapInObject).toArray()));
+        r.putArray("central", new JsonArray(list.subList(16, 21).stream().map(this::wrapInObject).toArray()));
+        r.putArray("southwest", new JsonArray(list.subList(21, 30).stream().map(this::wrapInObject).toArray()));
+        r.putArray("southeast", new JsonArray(list.subList(30, 39).stream().map(this::wrapInObject).toArray()));
+        return r;
     }
 
     private JsonArray getStations() {

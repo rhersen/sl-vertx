@@ -51,8 +51,8 @@ public class TrafiklabProxy extends Verticle {
         vertx.eventBus().send("store.stations", "", getReplyHandler(request));
     }
 
-    private Handler<Message<JsonArray>> getReplyHandler(HttpServerRequest request) {
-        return (Message<JsonArray> message) ->
+    private Handler<Message<JsonObject>> getReplyHandler(HttpServerRequest request) {
+        return (Message<JsonObject> message) ->
                 respondWith(new Buffer(message.body().encode()), "application/json", request);
     }
 
