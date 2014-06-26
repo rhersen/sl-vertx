@@ -3,34 +3,35 @@ package com.mycompany.myproject;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class StoreImpl {
-    private final HashMap<String, String> map = new HashMap<>();
-    private List<Object> stations = Collections.emptyList();
+    private final Map<String, String> map = new HashMap<>();
+    private Map<String, List<Integer>> stations = new HashMap<>();
 
     public void put(JsonObject body) {
-        body.toMap().forEach((siteId, stopAreaName) ->
+        body.toMap().forEach(
+                (siteId, stopAreaName) ->
                         map.put(siteId, stopAreaName.toString())
         );
     }
 
     public JsonObject get() {
-        List<Integer> list = getStations().toList();
-        JsonObject r = new JsonObject();
-        r.putArray("northwest", new JsonArray(list.subList(0, 8).stream().map(this::wrapInObject).toArray()));
-        r.putArray("northeast", new JsonArray(list.subList(8, 16).stream().map(this::wrapInObject).toArray()));
-        r.putArray("central", new JsonArray(list.subList(16, 21).stream().map(this::wrapInObject).toArray()));
-        r.putArray("southwest", new JsonArray(list.subList(21, 30).stream().map(this::wrapInObject).toArray()));
-        r.putArray("southeast", new JsonArray(list.subList(30, 39).stream().map(this::wrapInObject).toArray()));
-        return r;
-    }
-
-    private JsonArray getStations() {
-        return new JsonArray(stations);
+        return asList("northwest", "northeast", "central", "southwest", "southeast")
+                .stream()
+                .reduce(new JsonObject(),
+                        (JsonObject acc, String key) ->
+                                acc.putArray(
+                                        key,
+                                        new JsonArray(
+                                                stations
+                                                        .get(key)
+                                                        .stream()
+                                                        .map(this::wrapInObject)
+                                                        .toArray())),
+                        JsonObject::mergeIn);
     }
 
     private LinkedHashMap<String, Object> wrapInObject(final Integer siteId) {
@@ -41,7 +42,7 @@ public class StoreImpl {
         }};
     }
 
-    public void setStations(List<Object> stations) {
-        this.stations = stations;
+    public List<Integer> putStations(String key, List<Integer> list) {
+        return stations.put(key, list);
     }
 }
