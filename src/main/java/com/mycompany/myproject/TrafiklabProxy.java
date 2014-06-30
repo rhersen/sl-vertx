@@ -35,6 +35,9 @@ public class TrafiklabProxy extends Verticle {
                         }
                     } else if (request.path().startsWith("/stations")) {
                         handleGetStations(request);
+                    } else if (request.path().startsWith("/nearest")) {
+                        JsonArray message = new JsonArray(asList("Sverige"));
+                        respondWith(new Buffer(message.encode()), "application/json", request);
                     } else {
                         String key = container.config().getString("trafiklab");
                         if (key == null) {
