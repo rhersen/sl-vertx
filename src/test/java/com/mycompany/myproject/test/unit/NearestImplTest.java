@@ -38,4 +38,10 @@ public class NearestImplTest {
         assertNotNull(subject);
         assertEquals("Stockholms central", subject.get(59.48, 18.05).get(0));
     }
+
+    @Test
+    public void manhattanDistanceIsNotGoodEnough() throws Exception {
+        assertNotNull(subject);
+        assertEquals("Märsta", subject.get(59.56, 18.05).get(0));
+    }
 }

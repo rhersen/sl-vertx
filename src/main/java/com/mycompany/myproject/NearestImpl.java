@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
-import static java.lang.Math.abs;
+import static java.lang.Math.*;
 import static java.util.Arrays.asList;
 
 public class NearestImpl {
@@ -50,7 +50,12 @@ class Distance implements Comparator<StopPoint> {
         return distance(o1) < distance(o2) ? -1 : 1;
     }
 
-    private double distance(StopPoint o1) {
-        return abs(φ - o1.φ) + abs(λ - o1.λ);
+    private double distance(StopPoint that) {
+        double λ1 = toRadians(λ);
+        double φ1 = toRadians(φ);
+        double λ2 = toRadians(that.λ);
+        double φ2 = toRadians(that.φ);
+
+        return toDegrees(acos(sin(λ1) * sin(λ2) + cos(λ1) * cos(λ2) * cos(φ1 - φ2)));
     }
 }
