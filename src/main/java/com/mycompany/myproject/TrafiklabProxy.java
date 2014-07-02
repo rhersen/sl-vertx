@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
@@ -22,6 +23,7 @@ public class TrafiklabProxy extends Verticle {
 
     public void start() {
         container.deployVerticle(Store.class.getName());
+        container.deployVerticle(Nearest.class.getName());
 
         vertx.createHttpServer()
                 .requestHandler(request -> {
@@ -36,8 +38,7 @@ public class TrafiklabProxy extends Verticle {
                     } else if (request.path().startsWith("/stations")) {
                         handleGetStations(request);
                     } else if (request.path().startsWith("/nearest")) {
-                        JsonArray message = new JsonArray(asList("Sverige"));
-                        respondWith(new Buffer(message.encode()), "application/json", request);
+                        handleNearest(request);
                     } else {
                         String key = container.config().getString("trafiklab");
                         if (key == null) {
@@ -51,11 +52,23 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private void handleGetStations(HttpServerRequest request) {
-        vertx.eventBus().send("store.stations", "", getReplyHandler(request));
+        vertx.eventBus().send("store.stations", "", getObjectReplyHandler(request));
     }
 
-    private Handler<Message<JsonObject>> getReplyHandler(HttpServerRequest request) {
+    private void handleNearest(HttpServerRequest request) {
+        String position = asList("latitude", "longitude").stream()
+                .map(name -> request.params().get(name))
+                .collect(joining(","));
+        vertx.eventBus().send("nearest", position, getArrayReplyHandler(request));
+    }
+
+    private Handler<Message<JsonObject>> getObjectReplyHandler(HttpServerRequest request) {
         return (Message<JsonObject> message) ->
+                respondWith(new Buffer(message.body().encode()), "application/json", request);
+    }
+
+    private Handler<Message<JsonArray>> getArrayReplyHandler(HttpServerRequest request) {
+        return (Message<JsonArray> message) ->
                 respondWith(new Buffer(message.body().encode()), "application/json", request);
     }
 
