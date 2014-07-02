@@ -4,11 +4,11 @@ import org.vertx.java.core.json.JsonArray;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
+import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 
 public class NearestImpl {
@@ -19,31 +19,38 @@ public class NearestImpl {
         this.lines = lines.map(line -> new StopPoint(line.split(";"))).collect(Collectors.toList());
     }
 
-    public JsonArray get(double... s) {
-        Optional<StopPoint> min = lines.stream().min(new Distance(s[0]));
-        return new JsonArray(asList(min.get().name));
+    public JsonArray get(double... φλ) {
+        return new JsonArray(asList(lines.stream().min(new Distance(φλ)).get().name));
     }
 
 }
 
 class StopPoint {
     public final double φ;
+    public final double λ;
     public final String name;
 
     public StopPoint(String[] split) {
         name = split[1];
         φ = parseDouble(split[3]);
+        λ = parseDouble(split[4]);
     }
 }
 
 class Distance implements Comparator<StopPoint> {
-    private double v;
+    private double φ;
+    private double λ;
 
-    public Distance(double v) {
-        this.v = v;
+    public Distance(double[] φλ) {
+        φ = φλ[0];
+        λ = φλ[1];
     }
 
     public int compare(StopPoint o1, StopPoint o2) {
-        return Math.abs(v - o1.φ) < Math.abs(v - o2.φ) ? -1 : 1;
+        return distance(o1) < distance(o2) ? -1 : 1;
+    }
+
+    private double distance(StopPoint o1) {
+        return abs(φ - o1.φ) + abs(λ - o1.λ);
     }
 }

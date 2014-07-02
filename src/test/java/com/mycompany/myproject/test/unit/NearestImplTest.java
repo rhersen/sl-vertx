@@ -32,4 +32,10 @@ public class NearestImplTest {
         assertNotNull(subject);
         assertEquals("Märsta", subject.get(59.6, 17.96).get(0));
     }
+
+    @Test
+    public void nearLongitude() throws Exception {
+        assertNotNull(subject);
+        assertEquals("Stockholms central", subject.get(59.48, 18.05).get(0));
+    }
 }
