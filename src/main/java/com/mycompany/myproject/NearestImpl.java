@@ -3,7 +3,9 @@ package com.mycompany.myproject;
 import org.vertx.java.core.json.JsonArray;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,7 +22,14 @@ public class NearestImpl {
     }
 
     public JsonArray get(double... φλ) {
-        return new JsonArray(asList(lines.stream().min(new Distance(φλ)).get().name));
+        return new JsonArray(asList(new LinkedHashMap<String, Object>() {{
+            Distance comparator = new Distance(φλ);
+            Optional<StopPoint> min = lines.stream().min(comparator);
+            if (min.isPresent()) {
+                put("name", min.get().name);
+                put("distance", comparator.get(min.get()));
+            }
+        }}));
     }
 
 }
@@ -47,15 +56,15 @@ class Distance implements Comparator<StopPoint> {
     }
 
     public int compare(StopPoint o1, StopPoint o2) {
-        return distance(o1) < distance(o2) ? -1 : 1;
+        return get(o1) < get(o2) ? -1 : 1;
     }
 
-    private double distance(StopPoint that) {
+    double get(StopPoint that) {
         double λ1 = toRadians(λ);
         double φ1 = toRadians(φ);
         double λ2 = toRadians(that.λ);
         double φ2 = toRadians(that.φ);
 
-        return toDegrees(acos(sin(λ1) * sin(λ2) + cos(λ1) * cos(λ2) * cos(φ1 - φ2)));
+        return 6378160.446 * acos(sin(λ1) * sin(λ2) + cos(λ1) * cos(λ2) * cos(φ1 - φ2));
     }
 }

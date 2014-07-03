@@ -3,10 +3,11 @@ package com.mycompany.myproject.test.unit;
 import com.mycompany.myproject.NearestImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.vertx.java.core.json.JsonObject;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class NearestImplTest {
 
@@ -22,26 +23,28 @@ public class NearestImplTest {
 
     @Test
     public void same() throws Exception {
-        assertNotNull(subject);
-        assertEquals("Stockholms central", subject.get(59.3297573170160, 18.0579362297373).get(0));
-        assertEquals("Märsta", subject.get(59.6276624202622, 17.8609502859119).get(0));
+        JsonObject result1 = subject.get(59.3297573170160, 18.0579362297373).<JsonObject>get(0);
+        JsonObject result2 = subject.get(59.6276624202622, 17.8609502859119).<JsonObject>get(0);
+
+        assertEquals("Stockholms central", result1.getString("name"));
+        assertEquals(0.0, result1.getNumber("distance"));
+        assertEquals("Märsta", result2.getString("name"));
+        assertEquals(0.0, result2.getNumber("distance"));
     }
 
     @Test
     public void nearLatitude() throws Exception {
-        assertNotNull(subject);
-        assertEquals("Märsta", subject.get(59.6, 17.96).get(0));
+        assertEquals("Märsta", subject.get(59.6, 17.96).<JsonObject>get(0).getString("name"));
+        assertTrue(subject.get(59.6, 17.96).<JsonObject>get(0).getNumber("distance").doubleValue() > 1e4);
     }
 
     @Test
     public void nearLongitude() throws Exception {
-        assertNotNull(subject);
-        assertEquals("Stockholms central", subject.get(59.48, 18.05).get(0));
+        assertEquals("Stockholms central", subject.get(59.48, 18.05).<JsonObject>get(0).getString("name"));
     }
 
     @Test
     public void manhattanDistanceIsNotGoodEnough() throws Exception {
-        assertNotNull(subject);
-        assertEquals("Märsta", subject.get(59.56, 18.05).get(0));
+        assertEquals("Märsta", subject.get(59.56, 18.05).<JsonObject>get(0).getString("name"));
     }
 }
