@@ -27,7 +27,7 @@ public class NearestImpl {
             Optional<StopPoint> min = lines.stream().min(comparator);
             if (min.isPresent()) {
                 put("name", min.get().name);
-                put("distance", comparator.get(min.get()));
+                put("distance", round(comparator.get(min.get())));
             }
         }}));
     }
