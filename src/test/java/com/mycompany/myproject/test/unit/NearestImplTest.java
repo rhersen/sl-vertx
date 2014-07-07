@@ -3,6 +3,7 @@ package com.mycompany.myproject.test.unit;
 import com.mycompany.myproject.NearestImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
 import static java.util.Arrays.asList;
@@ -45,5 +46,11 @@ public class NearestImplTest {
     @Test
     public void manhattanDistanceIsNotGoodEnough() throws Exception {
         assertEquals("Märsta", subject.get(59.56, 18.05).<JsonObject>get(0).getString("name"));
+    }
+
+    @Test
+    public void returnsMoreThanOne() throws Exception {
+        JsonArray result = subject.get(59.48, 18.05);
+        assertEquals(2, result.size());
     }
 }

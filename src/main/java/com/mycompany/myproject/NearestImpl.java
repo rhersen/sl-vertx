@@ -5,33 +5,34 @@ import org.vertx.java.core.json.JsonArray;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Math.*;
-import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 public class NearestImpl {
 
     private final List<StopPoint> lines;
 
     public NearestImpl(Stream<String> lines) {
-        this.lines = lines.map(line -> new StopPoint(line.split(";"))).collect(Collectors.toList());
+        this.lines = lines.map(line -> new StopPoint(line.split(";"))).collect(toList());
     }
 
     public JsonArray get(double... φλ) {
-        return new JsonArray(asList(new LinkedHashMap<String, Object>() {{
-            Distance comparator = new Distance(φλ);
-            Optional<StopPoint> min = lines.stream().min(comparator);
-            if (min.isPresent()) {
-                put("name", min.get().name);
-                put("distance", round(comparator.get(min.get())));
-            }
-        }}));
+        Distance comparator = new Distance(φλ);
+        return new JsonArray(lines
+                .stream()
+                .sorted(comparator)
+                .limit(2)
+                .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
+                    put("name", stopPoint.name);
+                    put("distance", round(comparator.get(stopPoint)));
+                }})
+                .collect(toList()));
     }
-
 }
 
 class StopPoint {
