@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Math.*;
+import static java.lang.System.nanoTime;
 import static java.util.stream.Collectors.toList;
 
 public class NearestImpl {
@@ -23,15 +24,20 @@ public class NearestImpl {
 
     public JsonArray get(double... φλ) {
         Distance comparator = new Distance(φλ);
-        return new JsonArray(lines
+        long start = nanoTime();
+        List<Object> list = lines
                 .stream()
+                .parallel()
+                .filter(stopPoint -> comparator.get(stopPoint) < 0x1000)
                 .sorted(comparator)
-                .limit(2)
+                .limit(4)
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("distance", round(comparator.get(stopPoint)));
                 }})
-                .collect(toList()));
+                .collect(toList());
+        System.out.println((nanoTime() - start) * 1e-9);
+        return new JsonArray(list);
     }
 }
 
