@@ -31,6 +31,7 @@ public class NearestImpl {
                 .limit(8)
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
+                    put("area", stopPoint.area);
                     put("distance", round(comparator.get(stopPoint)));
                 }})
                 .collect(toList());
@@ -42,9 +43,11 @@ class StopPoint {
     public final double φ;
     public final double λ;
     public final String name;
+    public final String area;
 
     public StopPoint(String[] split) {
         name = split[1];
+        area = split[2];
         φ = parseDouble(split[3]);
         λ = parseDouble(split[4]);
     }

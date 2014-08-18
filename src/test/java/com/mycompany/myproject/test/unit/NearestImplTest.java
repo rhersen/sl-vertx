@@ -26,10 +26,16 @@ public class NearestImplTest {
         JsonObject result1 = subject.get(59.3297573170160, 18.0579362297373).<JsonObject>get(0);
         JsonObject result2 = subject.get(59.6276624202622, 17.8609502859119).<JsonObject>get(0);
 
-        assertEquals("Stockholms central", result1.getString("name"));
         assertEquals(0L, result1.getNumber("distance"));
-        assertEquals("Märsta", result2.getString("name"));
         assertEquals(0L, result2.getNumber("distance"));
+    }
+
+    @Test
+    public void fields() throws Exception {
+        JsonObject result = subject.get(59.3297573170160, 18.0579362297373).<JsonObject>get(0);
+
+        assertEquals("Stockholms central", result.getString("name"));
+        assertEquals("5011", result.getString("area"));
     }
 
     @Test
