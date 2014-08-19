@@ -80,7 +80,7 @@ public class TrafiklabProxyTest {
 
         JsonObject result = subject.filterTrafiklabData(root);
 
-        assertEquals("9525", result.getString("SiteId"));
+        assertEquals(9525, result.getNumber("SiteId"));
         assertEquals("Tullinge", result.getString("StopAreaName"));
     }
 

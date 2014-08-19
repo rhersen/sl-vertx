@@ -125,7 +125,7 @@ public class TrafiklabProxy extends Verticle {
         if (first.isPresent()) {
             JsonObject train = (JsonObject) first.get();
             filtered.putString("StopAreaName", train.getString("StopAreaName"));
-            filtered.putString("SiteId", "" + train.getInteger("SiteId"));
+            filtered.putNumber("SiteId", train.getInteger("SiteId"));
         }
 
         return filtered;
