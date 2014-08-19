@@ -9,6 +9,6 @@ public class TrafiklabAddress {
     public String getUrl(String path, String key) {
         Matcher m = pattern.matcher(path);
         String siteId = m.matches() ? m.group(1) : "9525";
-        return "/sl/realtid/GetDpsDepartures?key=" + key + "&timeWindow=60&siteId=" + siteId;
+        return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + siteId;
     }
 }

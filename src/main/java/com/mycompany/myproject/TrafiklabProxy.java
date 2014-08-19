@@ -40,7 +40,7 @@ public class TrafiklabProxy extends Verticle {
                     } else if (request.path().startsWith("/nearest")) {
                         handleNearest(request);
                     } else {
-                        String key = container.config().getString("trafiklab");
+                        String key = container.config().getString("sl");
                         if (key == null) {
                             request.response().setStatusCode(401).end();
                         } else {
@@ -81,7 +81,7 @@ public class TrafiklabProxy extends Verticle {
 
     private void handleGetDepartures(HttpServerRequest request, String key) {
         vertx.createHttpClient()
-                .setHost("api.trafiklab.se")
+                .setHost("api.sl.se")
                 .setSSL(true)
                 .setPort(443)
                 .get(trafiklabAddress.getUrl(request.path(), key), getResponseHandler(request))
@@ -111,9 +111,8 @@ public class TrafiklabProxy extends Verticle {
 
     public JsonObject filterTrafiklabData(JsonObject json) {
         JsonArray array = json
-                .getObject("DPS")
-                .getObject("Trains")
-                .getArray("DpsTrain");
+                .getObject("ResponseData")
+                .getArray("Trains");
 
         if (array == null) {
             array = new JsonArray();
@@ -125,7 +124,8 @@ public class TrafiklabProxy extends Verticle {
         Optional<Object> first = stream(array.spliterator(), false).findFirst();
         if (first.isPresent()) {
             JsonObject train = (JsonObject) first.get();
-            asList("SiteId", "StopAreaName").stream().forEach(key -> filtered.putString(key, train.getString(key)));
+            filtered.putString("StopAreaName", train.getString("StopAreaName"));
+            filtered.putString("SiteId", "" + train.getInteger("SiteId"));
         }
 
         return filtered;
@@ -138,7 +138,7 @@ public class TrafiklabProxy extends Verticle {
             JsonObject found = (JsonObject) first.get();
 
             vertx.eventBus().send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
-                put(found.getString("SiteId"), found.getString("StopAreaName"));
+                put("" + found.getInteger("SiteId"), found.getString("StopAreaName"));
             }}));
         }
     }

@@ -32,14 +32,14 @@ public class TrafiklabProxyTest {
 
         root = new JsonObject();
         dps = new JsonObject();
-        root.putObject("DPS", dps);
+        root.putObject("ResponseData", dps);
     }
 
     @Test
     public void intercept() throws Exception {
         Map<String, Object> trains = new LinkedHashMap<String, Object>() {{
             put("trains", asList(new LinkedHashMap<String, Object>() {{
-                put("SiteId", "9525");
+                put("SiteId", 9525);
                 put("StopAreaName", "Tullinge");
             }}));
         }};
@@ -53,7 +53,7 @@ public class TrafiklabProxyTest {
 
     @Test
     public void returnsEmptyArrayIfTrainsContainsNoDpsTrains() throws Exception {
-        dps.putObject("Trains", new JsonObject());
+        dps.putArray("Trains", new JsonArray());
 
         JsonObject result = subject.filterTrafiklabData(root);
 
@@ -73,7 +73,7 @@ public class TrafiklabProxyTest {
     @Test
     public void returnsJsonObjectWithSiteIdAndStopAreaName() throws Exception {
         JsonObject dpsTrain = new JsonObject(new LinkedHashMap<String, Object>() {{
-            put("SiteId", "9525");
+            put("SiteId", 9525);
             put("StopAreaName", "Tullinge");
         }});
         getDpsTrains().add(dpsTrain);
@@ -86,9 +86,7 @@ public class TrafiklabProxyTest {
 
     private JsonArray getDpsTrains() {
         JsonArray dpsTrains = new JsonArray();
-        JsonObject trains = new JsonObject();
-        trains.putArray("DpsTrain", dpsTrains);
-        dps.putObject("Trains", trains);
+        dps.putArray("Trains", dpsTrains);
         return dpsTrains;
     }
 }
