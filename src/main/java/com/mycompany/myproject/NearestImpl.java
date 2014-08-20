@@ -15,15 +15,17 @@ import static java.util.stream.Collectors.toList;
 
 public class NearestImpl {
 
-    private final List<StopPoint> lines;
+    private final List<StopPoint> stopPoints;
+    private final List<Site> sites;
 
-    public NearestImpl(Stream<String> lines) {
-        this.lines = lines.map(line -> new StopPoint(line.split(";"))).collect(toList());
+    public NearestImpl(Stream<String> stopPoints, Stream<String> sites) {
+        this.stopPoints = stopPoints.map(line -> new StopPoint(line.split(";"))).collect(toList());
+        this.sites = sites.map(line -> new Site(line.split(";"))).collect(toList());
     }
 
     public JsonArray get(double... φλ) {
         Distance comparator = new Distance(φλ);
-        List<Object> list = lines
+        List<Object> list = stopPoints
                 .stream()
                 .parallel()
                 .filter(stopPoint -> comparator.get(stopPoint) < 0x8000)
@@ -32,10 +34,15 @@ public class NearestImpl {
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("area", stopPoint.area);
+                    put("site", getSite(stopPoint.area));
                     put("distance", round(comparator.get(stopPoint)));
                 }})
                 .collect(toList());
         return new JsonArray(list);
+    }
+
+    private String getSite(String area) {
+        return sites.stream().filter(site -> site.area.equals(area)).findAny().get().id;
     }
 }
 
@@ -50,6 +57,16 @@ class StopPoint {
         area = split[2];
         φ = parseDouble(split[3]);
         λ = parseDouble(split[4]);
+    }
+}
+
+class Site {
+    public final String area;
+    public final String id;
+
+    public Site(String[] split) {
+        id = split[0];
+        area = split[2];
     }
 }
 
