@@ -6,21 +6,43 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Math.*;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 public class NearestImpl {
 
     private final List<StopPoint> stopPoints;
-    private final List<Site> sites;
+    private final Map<String, String> sites;
 
     public NearestImpl(Stream<String> stopPoints, Stream<String> sites) {
-        this.stopPoints = stopPoints.map(line -> new StopPoint(line.split(";"))).collect(toList());
-        this.sites = sites.map(line -> new Site(line.split(";"))).collect(toList());
+        this.stopPoints = stopPoints
+                .map(line -> new StopPoint(line.split(";")))
+                .collect(toList());
+
+        BinaryOperator<String> dontOverwrite = (oldKey, newKey) -> oldKey;
+
+        this.sites = sites
+                .map(line -> line.split(";"))
+                .filter(fields -> fields.length > 1)
+                .collect(toMap(getArea(), getSiteId(), dontOverwrite));
+    }
+
+    private Function<String[], String> getSiteId() {
+        return getField(0);
+    }
+
+    private Function<String[], String> getArea() {
+        return getField(2);
+    }
+
+    private Function<String[], String> getField(int n) {
+        return fields -> fields[n];
     }
 
     public JsonArray get(double... φλ) {
@@ -34,15 +56,11 @@ public class NearestImpl {
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("area", stopPoint.area);
-                    put("site", getSite(stopPoint.area));
+                    put("site", sites.get(stopPoint.area));
                     put("distance", round(comparator.get(stopPoint)));
                 }})
                 .collect(toList());
         return new JsonArray(list);
-    }
-
-    private String getSite(String area) {
-        return sites.stream().filter(site -> site.area.equals(area)).findAny().get().id;
     }
 }
 
@@ -57,16 +75,6 @@ class StopPoint {
         area = split[2];
         φ = parseDouble(split[3]);
         λ = parseDouble(split[4]);
-    }
-}
-
-class Site {
-    public final String area;
-    public final String id;
-
-    public Site(String[] split) {
-        id = split[0];
-        area = split[2];
     }
 }
 
