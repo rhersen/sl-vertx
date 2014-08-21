@@ -22,12 +22,14 @@ public class NearestImpl {
 
     public NearestImpl(Stream<String> stopPoints, Stream<String> sites) {
         this.stopPoints = stopPoints
+                .skip(1)
                 .map(line -> new StopPoint(line.split(";")))
                 .collect(toList());
 
         BinaryOperator<String> dontOverwrite = (oldKey, newKey) -> oldKey;
 
         this.sites = sites
+                .skip(1)
                 .map(line -> line.split(";"))
                 .filter(fields -> fields.length > 1)
                 .collect(toMap(getArea(), getSiteId(), dontOverwrite));
