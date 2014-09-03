@@ -110,22 +110,24 @@ public class TrafiklabProxy extends Verticle {
     }
 
     public JsonObject filterTrafiklabData(JsonObject json) {
-        JsonArray array = json
-                .getObject("ResponseData")
-                .getArray("Trains");
-
-        if (array == null) {
-            array = new JsonArray();
-        }
-
+        JsonObject responseData = json.getObject("ResponseData");
         JsonObject filtered = new JsonObject();
-        filtered.putArray("trains", array);
 
-        Optional<Object> first = stream(array.spliterator(), false).findFirst();
-        if (first.isPresent()) {
-            JsonObject train = (JsonObject) first.get();
-            filtered.putString("StopAreaName", train.getString("StopAreaName"));
-            filtered.putNumber("SiteId", train.getInteger("SiteId"));
+        responseData
+                .getFieldNames()
+                .stream()
+                .filter(name -> responseData.getField(name) instanceof JsonArray)
+                .filter(name -> responseData.<JsonArray>getField(name).size() > 0)
+                .forEach(name -> filtered.putArray(name.toLowerCase(), responseData.getField(name)));
+
+        JsonArray trains = filtered.getArray("trains");
+        if (trains != null) {
+            Optional<Object> first = stream(trains.spliterator(), false).findFirst();
+            if (first.isPresent()) {
+                JsonObject train = (JsonObject) first.get();
+                filtered.putString("StopAreaName", train.getString("StopAreaName"));
+                filtered.putNumber("SiteId", train.getInteger("SiteId"));
+            }
         }
 
         return filtered;
@@ -142,7 +144,6 @@ public class TrafiklabProxy extends Verticle {
             }}));
         }
     }
-
 }
 
 

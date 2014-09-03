@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 public class TrafiklabProxyTest {
@@ -20,10 +21,10 @@ public class TrafiklabProxyTest {
     private TrafiklabProxy subject;
     private EventBus eventBus;
     private JsonObject root;
-    private JsonObject dps;
+    private JsonObject responseData;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         subject = new TrafiklabProxy();
         Vertx vertx = mock(Vertx.class);
         eventBus = mock(EventBus.class);
@@ -31,12 +32,12 @@ public class TrafiklabProxyTest {
         subject.setVertx(vertx);
 
         root = new JsonObject();
-        dps = new JsonObject();
-        root.putObject("ResponseData", dps);
+        responseData = new JsonObject();
+        root.putObject("ResponseData", responseData);
     }
 
     @Test
-    public void intercept() throws Exception {
+    public void intercept() {
         Map<String, Object> trains = new LinkedHashMap<String, Object>() {{
             put("trains", asList(new LinkedHashMap<String, Object>() {{
                 put("SiteId", 9525);
@@ -52,31 +53,53 @@ public class TrafiklabProxyTest {
     }
 
     @Test
-    public void returnsEmptyArrayIfTrainsContainsNoDpsTrains() throws Exception {
-        dps.putArray("Trains", new JsonArray());
-
+    public void returnsJsonObjectWithTrainsInJsonArray() {
+        array("Trains").add(departure());
         JsonObject result = subject.filterTrafiklabData(root);
-
-        assertEquals(0, result.getArray("trains").size());
-    }
-
-    @Test
-    public void returnsJsonObjectWithTrainsInJsonArray() throws Exception {
-        JsonObject dpsTrain = new JsonObject();
-        getDpsTrains().add(dpsTrain);
-
-        JsonObject result = subject.filterTrafiklabData(root);
-
         assertEquals(1, result.getArray("trains").size());
     }
 
     @Test
-    public void returnsJsonObjectWithSiteIdAndStopAreaName() throws Exception {
-        JsonObject dpsTrain = new JsonObject(new LinkedHashMap<String, Object>() {{
+    public void returnsBothBusesAndTrains() {
+        array("Trains").add(departure());
+        array("Buses").add(departure());
+
+        JsonObject result = subject.filterTrafiklabData(root);
+
+        assertEquals(1, result.getArray("trains").size());
+        assertEquals(1, result.getArray("buses").size());
+    }
+
+    @Test
+    public void doesntCrashIfThereAreNoTrains() {
+        array("Buses").add(departure());
+        subject.filterTrafiklabData(root);
+    }
+
+    @Test
+    public void doesntCrashIfThereAreNonArrays() {
+        array("Trains").add(departure());
+        responseData.putNumber("DataAge", 19);
+        subject.filterTrafiklabData(root);
+    }
+
+    @Test
+    public void skipsEmptyArrays() {
+        array("Trains");
+        array("Buses").add(departure());
+
+        JsonObject result = subject.filterTrafiklabData(root);
+
+        assertFalse(result.getFieldNames().contains("trains"));
+    }
+
+    @Test
+    public void returnsJsonObjectWithSiteIdAndStopAreaName() {
+        JsonObject train = new JsonObject(new LinkedHashMap<String, Object>() {{
             put("SiteId", 9525);
             put("StopAreaName", "Tullinge");
         }});
-        getDpsTrains().add(dpsTrain);
+        array("Trains").add(train);
 
         JsonObject result = subject.filterTrafiklabData(root);
 
@@ -84,9 +107,13 @@ public class TrafiklabProxyTest {
         assertEquals("Tullinge", result.getString("StopAreaName"));
     }
 
-    private JsonArray getDpsTrains() {
-        JsonArray dpsTrains = new JsonArray();
-        dps.putArray("Trains", dpsTrains);
-        return dpsTrains;
+    private JsonArray array(String name) {
+        JsonArray trains = new JsonArray();
+        responseData.putArray(name, trains);
+        return trains;
+    }
+
+    private JsonObject departure() {
+        return new JsonObject();
     }
 }
