@@ -111,14 +111,19 @@ public class TrafiklabProxy extends Verticle {
 
     public JsonObject filterTrafiklabData(JsonObject json) {
         JsonObject responseData = json.getObject("ResponseData");
-        JsonObject filtered = new JsonObject();
-
-        responseData
+        JsonObject filtered = responseData
                 .getFieldNames()
                 .stream()
                 .filter(name -> responseData.getField(name) instanceof JsonArray)
                 .filter(name -> responseData.<JsonArray>getField(name).size() > 0)
-                .forEach(name -> filtered.putArray(name.toLowerCase(), responseData.getField(name)));
+                .reduce(new JsonObject(),
+                        (accumulator, name) -> accumulator.putArray(name.toLowerCase(), responseData.getField(name)),
+                        (x, y) -> {
+                            y.getFieldNames()
+                                    .stream()
+                                    .forEach(name -> x.putArray(name.toLowerCase(), y.getArray(name)));
+                            return x;
+                        });
 
         JsonArray trains = filtered.getArray("trains");
         if (trains != null) {
