@@ -116,14 +116,13 @@ public class TrafiklabProxy extends Verticle {
                 .stream()
                 .filter(name -> responseData.getField(name) instanceof JsonArray)
                 .filter(name -> responseData.<JsonArray>getField(name).size() > 0)
-                .reduce(new JsonObject(),
-                        (accumulator, name) -> accumulator.putArray(name.toLowerCase(), responseData.getField(name)),
-                        (x, y) -> {
-                            y.getFieldNames()
-                                    .stream()
-                                    .forEach(name -> x.putArray(name.toLowerCase(), y.getArray(name)));
-                            return x;
-                        });
+                .collect(JsonObject::new,
+                        (accumulator, name) ->
+                                accumulator.putArray(name.toLowerCase(), responseData.getField(name)),
+                        (accumulator, that) ->
+                                that.getFieldNames().stream().forEach(
+                                        name ->
+                                                accumulator.putArray(name, that.getArray(name))));
 
         JsonArray trains = filtered.getArray("trains");
         if (trains != null) {
@@ -150,5 +149,3 @@ public class TrafiklabProxy extends Verticle {
         }
     }
 }
-
-
