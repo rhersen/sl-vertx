@@ -53,6 +53,15 @@ public class TrafiklabProxyTest {
     }
 
     @Test
+    public void interceptWithNoTrains() {
+        Map<String, Object> trains = new LinkedHashMap<>();
+
+        subject.intercept(new JsonObject(trains));
+
+        verify(eventBus, never()).send(anyString(), any(JsonObject.class));
+    }
+
+    @Test
     public void returnsJsonObjectWithTrainsInJsonArray() {
         array("Trains").add(departure());
         JsonObject result = subject.filterTrafiklabData(root);

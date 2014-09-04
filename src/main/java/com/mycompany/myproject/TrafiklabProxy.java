@@ -95,17 +95,22 @@ public class TrafiklabProxy extends Verticle {
 
     private Handler<Buffer> getBodyHandler(HttpServerRequest request) {
         return trafiklabData -> {
-            JsonObject jsonObject = new JsonObject(trafiklabData.toString());
-            JsonObject filtered = filterTrafiklabData(jsonObject);
+            try {
+                JsonObject jsonObject = new JsonObject(trafiklabData.toString());
+                JsonObject filtered = filterTrafiklabData(jsonObject);
 
-            intercept(filtered);
+                intercept(filtered);
 
-            Buffer buffer = new Buffer(filtered.encode());
+                Buffer buffer = new Buffer(filtered.encode());
 
-            request.response()
-                    .putHeader("Content-Length", Integer.toString(buffer.length()))
-                    .putHeader("Content-Type", "application/json")
-                    .write(buffer);
+                request.response()
+                        .putHeader("Content-Length", Integer.toString(buffer.length()))
+                        .putHeader("Content-Type", "application/json")
+                        .write(buffer);
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.response().setStatusCode(500).setStatusMessage("Internal server error").end();
+            }
         };
     }
 
@@ -138,14 +143,18 @@ public class TrafiklabProxy extends Verticle {
     }
 
     public void intercept(JsonObject json) {
-        Optional<Object> first = stream(json.getArray("trains").spliterator(), false).findFirst();
+        JsonArray trains = json.getArray("trains");
 
-        if (first.isPresent()) {
-            JsonObject found = (JsonObject) first.get();
+        if (trains != null) {
+            Optional<Object> first = stream(trains.spliterator(), false).findFirst();
 
-            vertx.eventBus().send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
-                put("" + found.getInteger("SiteId"), found.getString("StopAreaName"));
-            }}));
+            if (first.isPresent()) {
+                JsonObject found = (JsonObject) first.get();
+
+                vertx.eventBus().send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
+                    put("" + found.getInteger("SiteId"), found.getString("StopAreaName"));
+                }}));
+            }
         }
     }
 }
