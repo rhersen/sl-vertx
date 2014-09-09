@@ -43,8 +43,15 @@ public class TrafiklabProxy extends Verticle {
                         String key = container.config().getString("sl");
                         if (key == null) {
                             request.response().setStatusCode(401).end();
-                        } else {
+                        } else try {
                             handleGetDepartures(request, key);
+                        } catch (Exception e) {
+                            request.response()
+                                    .setStatusCode(400)
+                                    .setStatusMessage("Bad Request")
+                                    .putHeader("Content-Length", Integer.toString(e.getMessage().length()))
+                                    .write(e.getMessage())
+                                    .end();
                         }
                     }
                 })

@@ -8,7 +8,11 @@ public class TrafiklabAddress {
 
     public String getUrl(String path, String key) {
         Matcher m = pattern.matcher(path);
-        String siteId = m.matches() ? m.group(1) : "9525";
-        return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + siteId;
+
+        if (!m.matches()) {
+            throw new RuntimeException("could not parse " + path);
+        }
+
+        return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + m.group(1);
     }
 }

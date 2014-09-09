@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TrafiklabAddressTest {
 
@@ -19,5 +20,15 @@ public class TrafiklabAddressTest {
     public void shouldCreateUrlBasedOnSiteIdInRequestPath() throws Exception {
         String result = subject.getUrl("/departures/1111", "nyckel");
         assertTrue(result.matches(".+\\?key=nyckel&timeWindow=60&siteId=1111$"));
+    }
+
+    @Test
+    public void throwsOnBadSiteId() throws Exception {
+        try {
+            subject.getUrl("/departures/solna", "nyckel");
+            fail("expected exception");
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage(), e.getMessage().contains("could not parse"));
+        }
     }
 }
