@@ -19,7 +19,19 @@ public class TrafiklabAddressTest {
     @Test
     public void shouldCreateUrlBasedOnSiteIdInRequestPath() throws Exception {
         String result = subject.getUrl("/departures/1111", "nyckel");
-        assertTrue(result.matches(".+\\?key=nyckel&timeWindow=60&siteId=1111$"));
+        assertTrue(result, result.matches(".+\\?key=nyckel.*siteId=1111$"));
+    }
+
+    @Test
+    public void handlesTrailingSlash() throws Exception {
+        String result = subject.getUrl("/departures/1111/", "nyckel");
+        assertTrue(result, result.matches(".+\\?key=nyckel.*siteId=1111$"));
+    }
+
+    @Test
+    public void usesFirstDigits() throws Exception {
+        String result = subject.getUrl("/departures/1111/9999", "nyckel");
+        assertTrue(result, result.matches(".+\\?key=nyckel.*siteId=1111$"));
     }
 
     @Test

@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TrafiklabAddress {
-    private final Pattern pattern = Pattern.compile(".*/(\\d+)");
+    private final Pattern pattern = Pattern.compile("/departures/(\\d+).*");
 
     public String getUrl(String path, String key) {
         Matcher m = pattern.matcher(path);
