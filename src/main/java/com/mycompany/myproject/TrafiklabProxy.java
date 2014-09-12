@@ -10,11 +10,13 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
@@ -123,30 +125,48 @@ public class TrafiklabProxy extends Verticle {
 
     public JsonObject filterTrafiklabData(JsonObject json) {
         JsonObject responseData = json.getObject("ResponseData");
-        JsonObject filtered = responseData
+
+        JsonObject result = mapToJson(responseData
                 .getFieldNames()
                 .stream()
                 .filter(name -> responseData.getField(name) instanceof JsonArray)
                 .filter(name -> responseData.<JsonArray>getField(name).size() > 0)
+                .collect(toMap(String::toLowerCase, responseData::getField)));
+
+        JsonObject found = findFirstTrain(result);
+
+        if (found != null) {
+            writeHeaderFields(result, found);
+        }
+
+        return result;
+    }
+
+    private JsonObject mapToJson(Map<String, JsonArray> map) {
+        return map.entrySet().stream()
                 .collect(JsonObject::new,
-                        (accumulator, name) ->
-                                accumulator.putArray(name.toLowerCase(), responseData.getField(name)),
+                        (accumulator, entry) ->
+                                accumulator.putArray(entry.getKey(), entry.getValue()),
                         (accumulator, that) ->
                                 that.getFieldNames().stream().forEach(
                                         name ->
                                                 accumulator.putArray(name, that.getArray(name))));
+    }
 
-        JsonArray trains = filtered.getArray("trains");
+    private JsonObject findFirstTrain(JsonObject result) {
+        JsonArray trains = result.getArray("trains");
         if (trains != null) {
             Optional<Object> first = stream(trains.spliterator(), false).findFirst();
             if (first.isPresent()) {
-                JsonObject train = (JsonObject) first.get();
-                filtered.putString("StopAreaName", train.getString("StopAreaName"));
-                filtered.putNumber("SiteId", train.getInteger("SiteId"));
+                return (JsonObject) first.get();
             }
         }
+        return result;
+    }
 
-        return filtered;
+    private void writeHeaderFields(JsonObject result, JsonObject train) {
+        result.putString("StopAreaName", train.getString("StopAreaName"));
+        result.putNumber("SiteId", train.getInteger("SiteId"));
     }
 
     public void intercept(JsonObject json) {
