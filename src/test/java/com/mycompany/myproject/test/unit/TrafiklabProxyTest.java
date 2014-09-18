@@ -1,5 +1,6 @@
 package com.mycompany.myproject.test.unit;
 
+import com.mycompany.myproject.TrafiklabFilter;
 import com.mycompany.myproject.TrafiklabProxy;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +64,7 @@ public class TrafiklabProxyTest {
     @Test
     public void returnsJsonObjectWithTrainsInJsonArray() {
         array("Trains").add(departure());
-        JsonObject result = subject.filterTrafiklabData(root, null);
+        JsonObject result = TrafiklabFilter.invoke(root, null);
         assertEquals(1, result.getArray("trains").size());
     }
 
@@ -72,7 +73,7 @@ public class TrafiklabProxyTest {
         array("Trains").add(departure());
         array("Buses").add(departure());
 
-        JsonObject result = subject.filterTrafiklabData(root, null);
+        JsonObject result = TrafiklabFilter.invoke(root, null);
 
         assertEquals(1, result.getArray("trains").size());
         assertEquals(1, result.getArray("buses").size());
@@ -81,14 +82,14 @@ public class TrafiklabProxyTest {
     @Test
     public void doesntCrashIfThereAreNoTrains() {
         array("Buses").add(departure());
-        subject.filterTrafiklabData(root, null);
+        TrafiklabFilter.invoke(root, null);
     }
 
     @Test
     public void doesntCrashIfThereAreNonArrays() {
         array("Trains").add(departure());
         responseData.putNumber("DataAge", 19);
-        subject.filterTrafiklabData(root, null);
+        TrafiklabFilter.invoke(root, null);
     }
 
     @Test
@@ -96,7 +97,7 @@ public class TrafiklabProxyTest {
         array("Trains");
         array("Buses").add(departure());
 
-        JsonObject result = subject.filterTrafiklabData(root, null);
+        JsonObject result = TrafiklabFilter.invoke(root, null);
 
         assertFalse(result.getFieldNames().contains("trains"));
     }
@@ -105,7 +106,7 @@ public class TrafiklabProxyTest {
     public void returnsJsonObjectWithSiteIdAndStopAreaName() {
         array("Trains").add(departure(5181));
 
-        JsonObject result = subject.filterTrafiklabData(root, null);
+        JsonObject result = TrafiklabFilter.invoke(root, null);
 
         assertEquals(9525, result.getNumber("SiteId"));
         assertEquals("Tullinge", result.getString("StopAreaName"));
@@ -116,7 +117,7 @@ public class TrafiklabProxyTest {
         array("Trains").add(departure(5181));
         array("Buses").add(departure(70243));
 
-        JsonObject result = subject.filterTrafiklabData(root, "5181");
+        JsonObject result = TrafiklabFilter.invoke(root, "5181");
 
         assertNotNull(result);
         assertEquals(1, result.getArray("trains").size());
