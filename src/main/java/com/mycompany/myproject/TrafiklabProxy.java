@@ -9,21 +9,20 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import java.util.LinkedHashMap;
-import java.util.Optional;
-
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabProxy extends Verticle {
 
     private final TrafiklabAddress trafiklabAddress = new TrafiklabAddress();
+    private Interceptor interceptor;
 
     public void start() {
         container.deployVerticle(Store.class.getName());
         container.deployVerticle(Nearest.class.getName());
+
+        interceptor = new Interceptor(vertx.eventBus());
 
         vertx.createHttpServer()
                 .requestHandler(request -> {
@@ -106,7 +105,7 @@ public class TrafiklabProxy extends Verticle {
                 JsonObject jsonObject = new JsonObject(trafiklabData.toString());
                 JsonObject filtered = TrafiklabFilter.invoke(jsonObject, request.params().get("area"));
 
-                intercept(filtered);
+                interceptor.invoke(filtered);
 
                 Buffer buffer = new Buffer(filtered.encode());
 
@@ -119,22 +118,6 @@ public class TrafiklabProxy extends Verticle {
                 request.response().setStatusCode(500).setStatusMessage("Internal server error").end();
             }
         };
-    }
-
-    public void intercept(JsonObject json) {
-        JsonArray trains = json.getArray("trains");
-
-        if (trains != null) {
-            Optional<Object> first = stream(trains.spliterator(), false).findFirst();
-
-            if (first.isPresent()) {
-                JsonObject found = (JsonObject) first.get();
-
-                vertx.eventBus().send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
-                    put("" + found.getInteger("SiteId"), found.getString("StopAreaName"));
-                }}));
-            }
-        }
     }
 }
 

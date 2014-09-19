@@ -1,9 +1,8 @@
 package com.mycompany.myproject.test.unit;
 
-import com.mycompany.myproject.TrafiklabProxy;
+import com.mycompany.myproject.Interceptor;
 import org.junit.Before;
 import org.junit.Test;
-import org.vertx.java.core.Vertx;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.json.JsonObject;
 
@@ -15,16 +14,13 @@ import static org.mockito.Mockito.*;
 
 public class TrafiklabProxyTest {
 
-    private TrafiklabProxy subject;
+    private Interceptor subject;
     private EventBus eventBus;
 
     @Before
     public void setUp() {
-        subject = new TrafiklabProxy();
-        Vertx vertx = mock(Vertx.class);
         eventBus = mock(EventBus.class);
-        when(vertx.eventBus()).thenReturn(eventBus);
-        subject.setVertx(vertx);
+        subject = new Interceptor(eventBus);
     }
 
     @Test
@@ -36,7 +32,7 @@ public class TrafiklabProxyTest {
             }}));
         }};
 
-        subject.intercept(new JsonObject(trains));
+        subject.invoke(new JsonObject(trains));
 
         verify(eventBus).send("store.put", new JsonObject(new LinkedHashMap<String, Object>() {{
             put("9525", "Tullinge");
@@ -47,7 +43,7 @@ public class TrafiklabProxyTest {
     public void interceptWithNoTrains() {
         Map<String, Object> trains = new LinkedHashMap<>();
 
-        subject.intercept(new JsonObject(trains));
+        subject.invoke(new JsonObject(trains));
 
         verify(eventBus, never()).send(anyString(), any(JsonObject.class));
     }
