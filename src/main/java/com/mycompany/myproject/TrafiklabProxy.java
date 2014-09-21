@@ -3,7 +3,6 @@ package com.mycompany.myproject;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.http.HttpClientResponse;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
@@ -58,22 +57,22 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private void handleGetStations(HttpServerRequest request) {
-        vertx.eventBus().send("store.stations", "", getObjectReplyHandler(request));
+        vertx.eventBus().send("store.stations", "", sendObjectResponseTo(request));
     }
 
     private void handleNearest(HttpServerRequest request) {
         String position = asList("latitude", "longitude").stream()
                 .map(name -> request.params().get(name))
                 .collect(joining(","));
-        vertx.eventBus().send("nearest", position, getArrayReplyHandler(request));
+        vertx.eventBus().send("nearest", position, sendArrayResponseTo(request));
     }
 
-    private Handler<Message<JsonObject>> getObjectReplyHandler(HttpServerRequest request) {
+    private Handler<Message<JsonObject>> sendObjectResponseTo(HttpServerRequest request) {
         return (Message<JsonObject> message) ->
                 respondWith(new Buffer(message.body().encode()), "application/json", request);
     }
 
-    private Handler<Message<JsonArray>> getArrayReplyHandler(HttpServerRequest request) {
+    private Handler<Message<JsonArray>> sendArrayResponseTo(HttpServerRequest request) {
         return (Message<JsonArray> message) ->
                 respondWith(new Buffer(message.body().encode()), "application/json", request);
     }
@@ -90,13 +89,9 @@ public class TrafiklabProxy extends Verticle {
                 .setHost("api.sl.se")
                 .setSSL(true)
                 .setPort(443)
-                .get(trafiklabAddress.getUrl(request.path(), key), getResponseHandler(request))
+                .get(trafiklabAddress.getUrl(request.path(), key), rsp -> rsp.bodyHandler(getBodyHandler(request)))
                 .putHeader("Accept", "application/json")
                 .end();
-    }
-
-    private Handler<HttpClientResponse> getResponseHandler(HttpServerRequest request) {
-        return rsp -> rsp.bodyHandler(getBodyHandler(request));
     }
 
     private Handler<Buffer> getBodyHandler(HttpServerRequest request) {

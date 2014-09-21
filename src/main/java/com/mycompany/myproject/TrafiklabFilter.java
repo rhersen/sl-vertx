@@ -20,6 +20,10 @@ public class TrafiklabFilter {
     public static JsonObject invoke(JsonObject json, String area) {
         JsonObject responseData = json.getObject("ResponseData");
 
+        if (responseData == null) {
+            return new JsonObject();
+        }
+
         Predicate<String> isJsonArray = name -> responseData.getField(name) instanceof JsonArray;
 
         Function<String, List> jsonArrayToList = (String name) ->
@@ -60,8 +64,11 @@ public class TrafiklabFilter {
     private static JsonObject toJsonObject(Stream<Map.Entry<String, List<JsonObject>>> entryStream) {
         return entryStream
                 .collect(JsonObject::new,
-                        (accumulator, entry) ->
-                                accumulator.putArray(entry.getKey(), listToJson(entry.getValue())),
+                        (accumulator, entry) -> {
+                            JsonArray r = new JsonArray();
+                            entry.getValue().stream().forEach(r::add);
+                            accumulator.putArray(entry.getKey(), r);
+                        },
                         (accumulator, that) ->
                                 that.getFieldNames().stream().forEach(
                                         name ->
@@ -74,12 +81,6 @@ public class TrafiklabFilter {
         } else {
             return (JsonObject obj) -> obj.<Integer>getField("StopAreaNumber").equals(parseInt(area));
         }
-    }
-
-    private static JsonArray listToJson(List<JsonObject> value) {
-        JsonArray r = new JsonArray();
-        value.stream().forEach(r::add);
-        return r;
     }
 
     private static JsonObject findFirstTrain(JsonObject result) {
