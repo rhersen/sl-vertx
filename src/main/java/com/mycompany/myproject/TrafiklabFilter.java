@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
@@ -26,16 +25,12 @@ public class TrafiklabFilter {
 
         Predicate<String> isJsonArray = name -> responseData.getField(name) instanceof JsonArray;
 
-        Function<String, List> jsonArrayToList = (String name) ->
-                stream(responseData.<JsonArray>getField(name).spliterator(), false)
-                        .collect(toList());
-
-        Function<Map.Entry<String, List>, List<JsonObject>> filterOnArea = e -> {
-            List<JsonObject> value = e.getValue();
-            return value.stream()
-                    .filter(getFilterFor(area))
-                    .collect(Collectors.<JsonObject>toList());
-        };
+        Function<String, List<JsonObject>> jsonArrayToList =
+                name -> {
+                    Stream<Object> stream = stream(responseData.<JsonArray>getField(name).spliterator(), false);
+                    Stream<JsonObject> objectStream = stream.filter(getFilterFor(area));
+                    return objectStream.collect(toList());
+                };
 
         Predicate<Map.Entry<String, List<JsonObject>>> nonEmpty = entry -> !entry.getValue().isEmpty();
 
@@ -43,9 +38,6 @@ public class TrafiklabFilter {
                 .stream()
                 .filter(isJsonArray)
                 .collect(toMap(String::toLowerCase, jsonArrayToList))
-                .entrySet()
-                .stream()
-                .collect(toMap(Map.Entry::getKey, filterOnArea))
                 .entrySet()
                 .stream()
                 .filter(nonEmpty);
@@ -66,7 +58,8 @@ public class TrafiklabFilter {
                 .collect(JsonObject::new,
                         (accumulator, entry) -> {
                             JsonArray r = new JsonArray();
-                            entry.getValue().stream().forEach(r::add);
+                            Stream<JsonObject> stream = entry.getValue().stream();
+                            stream.forEach(r::add);
                             accumulator.putArray(entry.getKey(), r);
                         },
                         (accumulator, that) ->
@@ -75,11 +68,11 @@ public class TrafiklabFilter {
                                                 accumulator.putArray(name, that.getArray(name))));
     }
 
-    private static Predicate<JsonObject> getFilterFor(String area) {
+    private static Predicate getFilterFor(String area) {
         if (area == null) {
             return obj -> true;
         } else {
-            return (JsonObject obj) -> obj.<Integer>getField("StopAreaNumber").equals(parseInt(area));
+            return (Object obj) -> ((JsonObject) obj).<Integer>getField("StopAreaNumber").equals(parseInt(area));
         }
     }
 
