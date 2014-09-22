@@ -19,7 +19,7 @@ public class TrafiklabProxy extends Verticle {
 
     public void start() {
         container.deployVerticle(Store.class.getName());
-        container.deployVerticle(Nearest.class.getName());
+        container.deployVerticle(Nearest.class.getName(), container.config());
 
         interceptor = new Interceptor(vertx.eventBus());
 
@@ -38,7 +38,7 @@ public class TrafiklabProxy extends Verticle {
                     } else if (request.path().startsWith("/nearest")) {
                         handleNearest(request);
                     } else {
-                        String key = container.config().getString("sl");
+                        String key = container.config().getString("realtimedepartures");
                         if (key == null) {
                             request.response().setStatusCode(401).end();
                         } else try {

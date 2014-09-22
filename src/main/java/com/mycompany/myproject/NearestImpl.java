@@ -17,15 +17,17 @@ import static java.util.stream.Collectors.toMap;
 
 public class NearestImpl {
 
-    private final List<StopPoint> stopPoints;
-    private final Map<String, String> sites;
+    private List<StopPoint> stopPoints;
+    private Map<String, String> sites;
 
-    public NearestImpl(Stream<String> stopPoints, Stream<String> sites) {
+    public void setStopPoints(Stream<String> stopPoints) {
         this.stopPoints = stopPoints
                 .skip(1)
                 .map(line -> new StopPoint(line.split(";")))
                 .collect(toList());
+    }
 
+    public void setSites(Stream<String> sites) {
         BinaryOperator<String> dontOverwrite = (oldKey, newKey) -> oldKey;
 
         this.sites = sites
@@ -48,6 +50,13 @@ public class NearestImpl {
     }
 
     public JsonArray get(double... φλ) {
+        JsonArray objects = new JsonArray();
+
+        if (stopPoints == null || sites == null) {
+            System.err.println("files missing");
+            return objects;
+        }
+
         Distance comparator = new Distance(φλ);
         List<Object> list = stopPoints
                 .stream()
