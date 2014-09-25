@@ -8,9 +8,7 @@ import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 
-import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
-import static java.util.stream.Collectors.joining;
 
 public class TrafiklabProxy extends Verticle {
 
@@ -61,11 +59,7 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private void handleNearest(HttpServerRequest request) {
-        String position = asList("latitude", "longitude", "limit").stream()
-                .map(name -> request.params().get(name))
-                .filter(value -> value != null)
-                .collect(joining(","));
-        vertx.eventBus().send("nearest", position, sendArrayResponseTo(request));
+        vertx.eventBus().send("nearest", new ParamsToJson().invoke(request.params()), sendArrayResponseTo(request));
     }
 
     private Handler<Message<JsonObject>> sendObjectResponseTo(HttpServerRequest request) {
