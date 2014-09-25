@@ -4,9 +4,9 @@ import com.mycompany.myproject.ParamsToJson;
 import org.junit.Before;
 import org.junit.Test;
 import org.vertx.java.core.http.CaseInsensitiveMultiMap;
+import org.vertx.java.core.json.JsonObject;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ParamsToJsonTest {
@@ -20,11 +20,11 @@ public class ParamsToJsonTest {
 
     @Test
     public void empty() {
-        String result = subject.invoke(new CaseInsensitiveMultiMap());
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        JsonObject result = subject.invoke(new CaseInsensitiveMultiMap());
+        assertTrue(result.getFieldNames().isEmpty());
     }
 
+    @SuppressWarnings("UnnecessaryBoxing")
     @Test
     public void allThreeParams() {
         CaseInsensitiveMultiMap params = new CaseInsensitiveMultiMap();
@@ -32,8 +32,10 @@ public class ParamsToJsonTest {
         params.add("latitude", "59.22");
         params.add("limit", "16");
 
-        String result = subject.invoke(params);
+        JsonObject result = subject.invoke(params);
 
-        assertEquals("59.22,17.88,16", result);
+        assertEquals(Double.valueOf(17.88), result.getField("longitude"));
+        assertEquals(Double.valueOf(59.22), result.getField("latitude"));
+        assertEquals(Double.valueOf(16), result.getField("limit"));
     }
 }

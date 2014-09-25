@@ -33,8 +33,8 @@ public class NearestImplTest {
 
     @Test
     public void same() throws Exception {
-        JsonObject result1 = subject.get(59.3297573170160, 18.0579362297373).<JsonObject>get(0);
-        JsonObject result2 = subject.get(59.6276624202622, 17.8609502859119).<JsonObject>get(0);
+        JsonObject result1 = subject.get(json(59.3297573170160, 18.0579362297373)).<JsonObject>get(0);
+        JsonObject result2 = subject.get(json(59.6276624202622, 17.8609502859119)).<JsonObject>get(0);
 
         assertEquals(0L, result1.getNumber("distance"));
         assertEquals(0L, result2.getNumber("distance"));
@@ -43,7 +43,7 @@ public class NearestImplTest {
 
     @Test
     public void fields() throws Exception {
-        JsonObject result = subject.get(59.3297573170160, 18.0579362297373).<JsonObject>get(0);
+        JsonObject result = subject.get(json(59.3297573170160, 18.0579362297373)).<JsonObject>get(0);
 
         assertEquals("Stockholms central", result.getString("name"));
         assertEquals("5011", result.getString("area"));
@@ -54,29 +54,46 @@ public class NearestImplTest {
 
     @Test
     public void nearLatitude() throws Exception {
-        assertEquals("Märsta", subject.get(59.6, 17.96).<JsonObject>get(0).getString("name"));
-        assertEquals(8226L, subject.get(59.6, 17.93).<JsonObject>get(0).getNumber("distance"));
+        assertEquals("Märsta", subject.get(json(59.6, 17.96)).<JsonObject>get(0).getString("name"));
+        assertEquals(8226L, subject.get(json(59.6, 17.93)).<JsonObject>get(0).getNumber("distance"));
     }
 
     @Test
     public void nearLongitude() throws Exception {
-        assertEquals("Stockholms central", subject.get(59.48, 18.05).<JsonObject>get(0).getString("name"));
+        assertEquals("Stockholms central", subject.get(json(59.48, 18.05)).<JsonObject>get(0).getString("name"));
     }
 
     @Test
     public void manhattanDistanceIsNotGoodEnough() throws Exception {
-        assertEquals("Märsta", subject.get(59.56, 18.05).<JsonObject>get(0).getString("name"));
+        assertEquals("Märsta", subject.get(json(59.56, 18.05)).<JsonObject>get(0).getString("name"));
     }
 
     @Test
     public void returnsMoreThanOne() throws Exception {
-        JsonArray result = subject.get(59.48, 18.05);
+        JsonArray result = subject.get(json(59.48, 18.05));
         assertEquals(2, result.size());
+    }
+
+    @Test
+    public void returnsNoMoreThanLimit() throws Exception {
+        JsonObject json = json(59.48, 18.05);
+        json.putNumber("limit", 1);
+
+        JsonArray result = subject.get(json);
+
+        assertEquals(1, result.size());
     }
 
     @Test
     public void doesntCrash() throws Exception {
         NearestImpl uninitialized = new NearestImpl();
-        uninitialized.get(59.48, 18.05);
+        uninitialized.get(json(59.48, 18.05));
+    }
+
+    private JsonObject json(double latitude, double longitude) {
+        JsonObject r = new JsonObject();
+        r.putNumber("latitude", latitude);
+        r.putNumber("longitude", longitude);
+        return r;
     }
 }

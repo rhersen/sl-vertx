@@ -1,6 +1,7 @@
 package com.mycompany.myproject;
 
 import org.vertx.java.core.json.JsonArray;
+import org.vertx.java.core.json.JsonObject;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -49,7 +50,7 @@ public class NearestImpl {
         return fields -> fields[n];
     }
 
-    public JsonArray get(double... φλ) {
+    public JsonArray get(JsonObject φλ) {
         JsonArray objects = new JsonArray();
 
         if (stopPoints == null || sites == null) {
@@ -57,13 +58,13 @@ public class NearestImpl {
             return objects;
         }
 
-        Distance comparator = new Distance(φλ);
+        Distance comparator = new Distance(φλ.getNumber("latitude").doubleValue(), φλ.getNumber("longitude").doubleValue());
         List<Object> list = stopPoints
                 .stream()
                 .parallel()
                 .filter(stopPoint -> comparator.get(stopPoint) < 0x8000)
                 .sorted(comparator)
-                .limit(φλ.length > 2 ? (long) φλ[2] : 8)
+                .limit(φλ.getLong("limit", 8))
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("area", stopPoint.area);
@@ -95,9 +96,9 @@ class Distance implements Comparator<StopPoint> {
     private double φ;
     private double λ;
 
-    public Distance(double[] φλ) {
-        φ = φλ[0];
-        λ = φλ[1];
+    public Distance(double φ, double λ) {
+        this.φ = φ;
+        this.λ = λ;
     }
 
     public int compare(StopPoint o1, StopPoint o2) {
