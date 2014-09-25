@@ -63,11 +63,13 @@ public class NearestImpl {
                 .parallel()
                 .filter(stopPoint -> comparator.get(stopPoint) < 0x8000)
                 .sorted(comparator)
-                .limit(8)
+                .limit(φλ.length > 2 ? (long) φλ[2] : 8)
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("area", stopPoint.area);
                     put("site", sites.get(stopPoint.area));
+                    put("latitude", stopPoint.φ);
+                    put("longitude", stopPoint.λ);
                     put("distance", round(comparator.get(stopPoint)));
                 }})
                 .collect(toList());

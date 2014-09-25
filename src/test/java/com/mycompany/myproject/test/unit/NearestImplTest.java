@@ -48,6 +48,8 @@ public class NearestImplTest {
         assertEquals("Stockholms central", result.getString("name"));
         assertEquals("5011", result.getString("area"));
         assertEquals("1002", result.getString("site"));
+        assertEquals(59.3297573170160, result.getNumber("latitude"));
+        assertEquals(18.0579362297373, result.getNumber("longitude"));
     }
 
     @Test

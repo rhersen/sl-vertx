@@ -61,8 +61,9 @@ public class TrafiklabProxy extends Verticle {
     }
 
     private void handleNearest(HttpServerRequest request) {
-        String position = asList("latitude", "longitude").stream()
+        String position = asList("latitude", "longitude", "limit").stream()
                 .map(name -> request.params().get(name))
+                .filter(value -> value != null)
                 .collect(joining(","));
         vertx.eventBus().send("nearest", position, sendArrayResponseTo(request));
     }
