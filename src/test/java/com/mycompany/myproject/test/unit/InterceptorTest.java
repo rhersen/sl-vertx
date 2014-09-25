@@ -12,7 +12,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.*;
 
-public class TrafiklabProxyTest {
+public class InterceptorTest {
 
     private Interceptor subject;
     private EventBus eventBus;
