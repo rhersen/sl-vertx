@@ -72,7 +72,10 @@ public class TrafiklabFilter {
         if (area == null) {
             return obj -> true;
         } else {
-            return (Object obj) -> ((JsonObject) obj).<Integer>getField("StopAreaNumber").equals(parseInt(area));
+            return (Object obj) -> {
+                Integer stopAreaNumber = ((JsonObject) obj).<Integer>getField("StopAreaNumber");
+                return stopAreaNumber == null || stopAreaNumber.equals(parseInt(area));
+            };
         }
     }
 

@@ -84,7 +84,14 @@ public class TrafiklabProxy extends Verticle {
                 .setHost("api.sl.se")
                 .setSSL(true)
                 .setPort(443)
-                .get(trafiklabAddress.getUrl(request.path(), key), rsp -> rsp.bodyHandler(getBodyHandler(request)))
+                .get(trafiklabAddress.getUrl(request.path(), key), rsp -> {
+                    if (rsp.statusCode() == 200) {
+                        rsp.bodyHandler(getBodyHandler(request));
+                    } else {
+                        System.err.println(rsp.statusCode() + " " + rsp.statusMessage());
+                        request.response().setStatusCode(rsp.statusCode()).end();
+                    }
+                })
                 .putHeader("Accept", "application/json")
                 .end();
     }
@@ -94,15 +101,21 @@ public class TrafiklabProxy extends Verticle {
             try {
                 JsonObject jsonObject = new JsonObject(trafiklabData.toString());
                 JsonObject filtered = TrafiklabFilter.invoke(jsonObject, request.params().get("area"));
+                Integer statusCode = jsonObject.getInteger("StatusCode");
 
-                interceptor.invoke(filtered);
+                if (statusCode == null || statusCode == 0) {
+                    interceptor.invoke(filtered);
 
-                Buffer buffer = new Buffer(filtered.encode());
+                    Buffer buffer = new Buffer(filtered.encode());
 
-                request.response()
-                        .putHeader("Content-Length", Integer.toString(buffer.length()))
-                        .putHeader("Content-Type", "application/json")
-                        .write(buffer);
+                    request.response()
+                            .putHeader("Content-Length", Integer.toString(buffer.length()))
+                            .putHeader("Content-Type", "application/json")
+                            .write(buffer);
+                } else if (statusCode == 1006) {
+                    System.err.println(jsonObject.getString("Message"));
+                    request.response().setStatusCode(429).end();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 request.response().setStatusCode(500).setStatusMessage("Internal server error").end();

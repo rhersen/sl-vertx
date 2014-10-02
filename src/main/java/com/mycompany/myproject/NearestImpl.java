@@ -68,6 +68,7 @@ public class NearestImpl {
                 .map((Function<StopPoint, Map<String, Object>>) stopPoint -> new LinkedHashMap<String, Object>() {{
                     put("name", stopPoint.name);
                     put("area", stopPoint.area);
+                    put("type", stopPoint.type);
                     put("site", sites.get(stopPoint.area));
                     put("latitude", stopPoint.φ);
                     put("longitude", stopPoint.λ);
@@ -83,10 +84,12 @@ class StopPoint {
     public final double λ;
     public final String name;
     public final String area;
+    public final String type;
 
     public StopPoint(String[] split) {
         name = split[1];
         area = split[2];
+        type = split[6];
         φ = parseDouble(split[3]);
         λ = parseDouble(split[4]);
     }

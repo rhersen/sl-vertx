@@ -84,11 +84,25 @@ public class TrafiklabFilterTest {
         assertNull(result.getArray("buses"));
     }
 
+    @Test
+    public void dontRemoveDeparturesWithoutStopAreaNumber() {
+        array("Trains").add(departure(-1));
+        array("Buses").add(departure(70243));
+
+        JsonObject result = TrafiklabFilter.invoke(root, "5181");
+
+        assertNotNull(result);
+        assertEquals(1, result.getArray("trains").size());
+        assertNull(result.getArray("buses"));
+    }
+
     private JsonObject departure(final int stopAreaNumber) {
         return new JsonObject(new LinkedHashMap<String, Object>() {{
             put("SiteId", 9525);
             put("StopAreaName", "Tullinge");
-            put("StopAreaNumber", stopAreaNumber);
+            if (stopAreaNumber > 0) {
+                put("StopAreaNumber", stopAreaNumber);
+            }
         }});
     }
 
