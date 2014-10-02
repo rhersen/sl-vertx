@@ -100,21 +100,22 @@ public class Server extends Verticle {
         return trafiklabData -> {
             try {
                 JsonObject jsonObject = new JsonObject(trafiklabData.toString());
-                JsonObject filtered = TrafiklabFilter.invoke(jsonObject, request.params().get("area"));
-                Integer statusCode = jsonObject.getInteger("StatusCode");
+                ResponseStatus responseStatus = ResponseStatus.valueOf(jsonObject);
 
-                if (statusCode == null || statusCode == 0) {
+                if (responseStatus.isOk) {
+                    JsonObject filtered = TrafiklabFilter.invoke(jsonObject, request.params().get("area"));
                     interceptor.invoke(filtered);
-
                     Buffer buffer = new Buffer(filtered.encode());
 
                     request.response()
                             .putHeader("Content-Length", Integer.toString(buffer.length()))
                             .putHeader("Content-Type", "application/json")
                             .write(buffer);
-                } else if (statusCode == 1006) {
+                } else if (responseStatus.isThrottled) {
                     System.err.println(jsonObject.getString("Message"));
                     request.response().setStatusCode(429).end();
+                } else {
+                    System.err.println("unknown status: " + jsonObject);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
