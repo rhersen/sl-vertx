@@ -10,7 +10,7 @@ import org.vertx.java.platform.Verticle;
 
 import static java.util.Arrays.copyOfRange;
 
-public class TrafiklabProxy extends Verticle {
+public class Server extends Verticle {
 
     private final TrafiklabAddress trafiklabAddress = new TrafiklabAddress();
     private Interceptor interceptor;
