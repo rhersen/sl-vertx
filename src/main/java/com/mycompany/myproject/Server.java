@@ -10,6 +10,7 @@ import org.vertx.java.platform.Verticle;
 
 import static java.util.Arrays.copyOfRange;
 
+@SuppressWarnings("UnusedDeclaration")
 public class Server extends Verticle {
 
     private final TrafiklabAddress trafiklabAddress = new TrafiklabAddress();
@@ -82,8 +83,6 @@ public class Server extends Verticle {
     private void handleGetDepartures(HttpServerRequest request, String key) {
         vertx.createHttpClient()
                 .setHost("api.sl.se")
-                .setSSL(true)
-                .setPort(443)
                 .get(trafiklabAddress.getUrl(request.path(), key), rsp -> {
                     if (rsp.statusCode() == 200) {
                         rsp.bodyHandler(getBodyHandler(request));
