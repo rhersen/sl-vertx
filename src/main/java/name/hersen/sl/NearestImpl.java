@@ -24,7 +24,9 @@ public class NearestImpl {
     public void setStopPoints(Stream<String> stopPoints) {
         this.stopPoints = stopPoints
                 .skip(1)
-                .map(line -> new StopPoint(line.split(";")))
+                .map(line -> line.split(";"))
+                .filter(fields -> fields.length > 6)
+                .map(StopPoint::new)
                 .collect(toList());
     }
 

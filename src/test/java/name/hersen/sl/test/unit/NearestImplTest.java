@@ -20,7 +20,8 @@ public class NearestImplTest {
         subject.setStopPoints(asList(
                 "#StopPointNumber;StopPointName;StopAreaNumber;LocationNorthingCoordinate;LocationEastingCoordinate;ZoneShortName;StopAreaTypeCode;LastModifiedUtcDateTime;ExistsFromDate",
                 "05011;Stockholms central;5011;59.3297573170160;18.0579362297373;A;RAILWSTN;2012-06-23 00:00:00.000;2012-06-23 00:00:00.000",
-                "05121;Märsta;5121;59.6276624202622;17.8609502859119;C;RAILWSTN;2012-06-23 00:00:00.000;2012-06-23 00:00:00.000"
+                "05121;Märsta;5121;59.6276624202622;17.8609502859119;C;RAILWSTN;2012-06-23 00:00:00.000;2012-06-23 00:00:00.000",
+                "throw me away"
         ).stream());
 
         subject.setSites(asList(
