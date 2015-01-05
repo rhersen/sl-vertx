@@ -17,7 +17,7 @@ public class Server extends Verticle {
     private Interceptor interceptor;
 
     public void start() {
-        container.deployVerticle(Store.class.getName());
+        container.deployVerticle("store.js");
         container.deployVerticle(Nearest.class.getName(), container.config());
 
         interceptor = new Interceptor(vertx.eventBus());
