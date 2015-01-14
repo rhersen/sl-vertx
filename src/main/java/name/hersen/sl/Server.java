@@ -114,8 +114,8 @@ public class Server extends Verticle {
                     System.err.println(jsonObject.getString("Message"));
                     request.response().setStatusCode(429).end();
                 } else {
-                    System.err.println("unknown status: " + responseStatus + "\n" + jsonObject);
-                    request.response().setStatusCode(500).setStatusMessage("unknown status").end();
+                    System.err.println("unknown status: " + jsonObject);
+                    request.response().setStatusCode(500).setStatusMessage(jsonObject.getString("Message")).end();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
