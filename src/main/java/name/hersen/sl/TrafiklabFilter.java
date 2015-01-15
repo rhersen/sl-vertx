@@ -23,6 +23,8 @@ public class TrafiklabFilter {
             return new JsonObject();
         }
 
+        System.out.println(json.getNumber("ExecutionTime") + " ms");
+
         Predicate<String> isJsonArray = name -> responseData.getField(name) instanceof JsonArray;
 
         Function<String, List<JsonObject>> jsonArrayToList =
