@@ -13,6 +13,8 @@ public class TrafiklabAddress {
             throw new RuntimeException("could not parse " + path);
         }
 
-        return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + m.group(1);
+        String siteId = m.group(1);
+        System.out.println(siteId);
+        return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + siteId;
     }
 }

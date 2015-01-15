@@ -33,8 +33,10 @@ public class Server extends Verticle {
                             // ignore
                         }
                     } else if (request.path().startsWith("/stations")) {
+                        System.out.println("stations");
                         handleGetStations(request);
                     } else if (request.path().startsWith("/nearest")) {
+                        System.out.println("nearest");
                         handleNearest(request);
                     } else {
                         String key = container.config().getString("realtimedepartures");
