@@ -56,7 +56,9 @@ public class NearestImpl {
         JsonArray objects = new JsonArray();
 
         if (stopPoints == null || sites == null) {
-            System.err.println("files missing");
+            if (Nearest.l != null) {
+                Nearest.l.warn("files missing");
+            }
             return objects;
         }
 

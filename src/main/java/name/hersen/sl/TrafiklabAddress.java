@@ -14,7 +14,11 @@ public class TrafiklabAddress {
         }
 
         String siteId = m.group(1);
-        System.out.println(siteId);
+
+        if (Server.l != null) {
+            Server.l.info(siteId);
+        }
+
         return "/api2/realtimedepartures.json?key=" + key + "&timeWindow=60&siteId=" + siteId;
     }
 }

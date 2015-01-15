@@ -6,6 +6,7 @@ import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
+import org.vertx.java.core.logging.Logger;
 import org.vertx.java.platform.Verticle;
 
 import static java.util.Arrays.copyOfRange;
@@ -15,8 +16,10 @@ public class Server extends Verticle {
 
     private final TrafiklabAddress trafiklabAddress = new TrafiklabAddress();
     private Interceptor interceptor;
+    static Logger l;
 
     public void start() {
+        l = container.logger();
         container.deployVerticle("store.js");
         container.deployVerticle(Nearest.class.getName(), container.config());
 
@@ -33,10 +36,10 @@ public class Server extends Verticle {
                             // ignore
                         }
                     } else if (request.path().startsWith("/stations")) {
-                        System.out.println("stations");
+                        l.info("stations");
                         handleGetStations(request);
                     } else if (request.path().startsWith("/nearest")) {
-                        System.out.println("nearest");
+                        l.info("nearest");
                         handleNearest(request);
                     } else {
                         String key = container.config().getString("realtimedepartures");
@@ -89,7 +92,7 @@ public class Server extends Verticle {
                     if (rsp.statusCode() == 200) {
                         rsp.bodyHandler(getBodyHandler(request));
                     } else {
-                        System.err.println(rsp.statusCode() + " " + rsp.statusMessage());
+                        l.error(rsp.statusCode() + " " + rsp.statusMessage());
                         request.response().setStatusCode(rsp.statusCode()).end();
                     }
                 })
@@ -113,10 +116,10 @@ public class Server extends Verticle {
                             .putHeader("Content-Type", "application/json")
                             .write(buffer);
                 } else if (responseStatus.isThrottled) {
-                    System.err.println(jsonObject.getString("Message"));
+                    l.error(jsonObject.getString("Message"));
                     request.response().setStatusCode(429).end();
                 } else {
-                    System.err.println("unknown status: " + jsonObject);
+                    l.error("unknown status: " + jsonObject);
                     request.response().setStatusCode(500).setStatusMessage(jsonObject.getString("Message")).end();
                 }
             } catch (Exception e) {
