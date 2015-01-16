@@ -24,7 +24,7 @@ public class TrafiklabFilter {
         }
 
         if (Server.l != null) {
-            Server.l.info(json.getNumber("ExecutionTime") + " ms");
+            Server.l.info(getExecutionTime(json) + ":" + getLatestUpdate(json));
         }
 
         Predicate<String> isJsonArray = name -> responseData.getField(name) instanceof JsonArray;
@@ -55,6 +55,18 @@ public class TrafiklabFilter {
         }
 
         return result;
+    }
+
+    private static String getExecutionTime(JsonObject json) {
+        return json.getNumber("ExecutionTime") + " ms";
+    }
+
+    private static String getLatestUpdate(JsonObject json) {
+        JsonObject responseData = json.getObject("ResponseData");
+        if (responseData != null) {
+            return responseData.getString("LatestUpdate");
+        }
+        return "ResponseData missing";
     }
 
     private static JsonObject toJsonObject(Stream<Map.Entry<String, List<JsonObject>>> entryStream) {
