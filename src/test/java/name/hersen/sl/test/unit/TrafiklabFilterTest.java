@@ -73,6 +73,33 @@ public class TrafiklabFilterTest {
     }
 
     @Test
+    public void addsKeyToTrain() {
+        array("Trains").add(departure(5181, "2015-02-11T21:01:00"));
+        JsonObject result = TrafiklabFilter.invoke(root, null);
+        assertEquals("21012", result.getArray("trains").<JsonObject>get(0).getString("Key"));
+    }
+
+    @Test
+    public void doesntCrashIfStringDoesntMatch() {
+        array("Trains").add(departure(5181, "21:01:00"));
+        JsonObject result = TrafiklabFilter.invoke(root, null);
+        assertEquals("21:01:00", result.getArray("trains").<JsonObject>get(0).getString("Key"));
+    }
+
+    @Test
+    public void throwsOnDuplicateKeys() {
+        JsonArray trains = array("Trains");
+        trains.add(departure(5181, "21:01:00"));
+        trains.add(departure(5181, "21:01:00"));
+        try {
+            TrafiklabFilter.invoke(root, null);
+            fail("expected exception");
+        } catch (Exception e) {
+            // expected exception
+        }
+    }
+
+    @Test
     public void trainStopAreaNumber() {
         array("Trains").add(departure(5181));
         array("Buses").add(departure(70243));
@@ -97,9 +124,17 @@ public class TrafiklabFilterTest {
     }
 
     private JsonObject departure(final int stopAreaNumber) {
+        return departure(stopAreaNumber, null);
+    }
+
+    private JsonObject departure(final int stopAreaNumber, final String timeTabledDateTime) {
         return new JsonObject(new LinkedHashMap<String, Object>() {{
             put("SiteId", 9525);
             put("StopAreaName", "Tullinge");
+            if (timeTabledDateTime != null) {
+                put("TimeTabledDateTime", timeTabledDateTime);
+            }
+            put("JourneyDirection", 2);
             if (stopAreaNumber > 0) {
                 put("StopAreaNumber", stopAreaNumber);
             }

@@ -3,19 +3,23 @@ package name.hersen.sl;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabFilter {
+
+    private static final Pattern date = Pattern.compile("\\d\\d\\d\\d-\\d\\d-\\d\\dT(\\d\\d):(\\d\\d):\\d\\d");
+
     public static JsonObject invoke(JsonObject json, String area) {
         JsonObject responseData = json.getObject("ResponseData");
 
@@ -48,13 +52,36 @@ public class TrafiklabFilter {
 
         JsonObject result = toJsonObject(entryStream);
 
-        JsonObject found = findFirstTrain(result);
-
-        if (found != null) {
-            writeHeaderFields(result, found);
-        }
+        setUniqueKeysOn(result.getArray("trains"));
+        writeHeaderFields(result);
 
         return result;
+    }
+
+    private static void setUniqueKeysOn(JsonArray trains) {
+        if (trains == null) {
+            return;
+        }
+
+        stream(trains.spliterator(), false).forEach(o -> {
+            JsonObject train = (JsonObject) o;
+            String timeTabledDateTime = "" + train.getString("TimeTabledDateTime");
+            Matcher m = date.matcher(timeTabledDateTime);
+
+            train.putString("Key", m.matches() ? m.group(1) + m.group(2) + train.getInteger("JourneyDirection") : timeTabledDateTime);
+        });
+
+        List<String> keyList = stream(trains.spliterator(), false)
+                .map(o -> ((JsonObject) o).getString("Key"))
+                .collect(toList());
+
+        Set<String> keySet = stream(trains.spliterator(), false)
+                .map(o -> ((JsonObject) o).getString("Key"))
+                .collect(toSet());
+
+        if (keyList.size() != keySet.size()) {
+            throw new IllegalStateException("duplicate keys in " + keyList);
+        }
     }
 
     private static String getExecutionTime(JsonObject json) {
@@ -106,7 +133,13 @@ public class TrafiklabFilter {
         return result;
     }
 
-    private static void writeHeaderFields(JsonObject result, JsonObject train) {
+    private static void writeHeaderFields(JsonObject result) {
+        JsonObject train = findFirstTrain(result);
+
+        if (train == null) {
+            return;
+        }
+
         result.putString("StopAreaName", train.getString("StopAreaName"));
         result.putNumber("SiteId", train.getInteger("SiteId"));
     }
