@@ -21,6 +21,6 @@
   // Python verticle
   //"main": "ping_verticle.py",
 
-  "auto-redeploy": true
+  "auto-redeploy": false
 
 }

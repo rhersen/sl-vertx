@@ -73,20 +73,6 @@ public class TrafiklabFilterTest {
     }
 
     @Test
-    public void addsKeyToTrain() {
-        array("Trains").add(departure(5181, "2015-02-11T21:01:00"));
-        JsonObject result = TrafiklabFilter.invoke(root, null);
-        assertEquals("21012", result.getArray("trains").<JsonObject>get(0).getString("Key"));
-    }
-
-    @Test
-    public void doesntCrashIfStringDoesntMatch() {
-        array("Trains").add(departure(5181, "21:01:00"));
-        JsonObject result = TrafiklabFilter.invoke(root, null);
-        assertEquals("21:01:00", result.getArray("trains").<JsonObject>get(0).getString("Key"));
-    }
-
-    @Test
     public void throwsOnDuplicateKeys() {
         JsonArray trains = array("Trains");
         trains.add(departure(5181, "21:01:00"));

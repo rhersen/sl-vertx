@@ -3,22 +3,19 @@ package name.hersen.sl;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.parseInt;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static java.util.stream.StreamSupport.stream;
 
 public class TrafiklabFilter {
-
-    private static final Pattern date = Pattern.compile("\\d\\d\\d\\d-\\d\\d-\\d\\dT(\\d\\d):(\\d\\d):\\d\\d");
 
     public static JsonObject invoke(JsonObject json, String area) {
         JsonObject responseData = json.getObject("ResponseData");
@@ -65,10 +62,12 @@ public class TrafiklabFilter {
 
         stream(trains.spliterator(), false).forEach(o -> {
             JsonObject train = (JsonObject) o;
-            String timeTabledDateTime = "" + train.getString("TimeTabledDateTime");
-            Matcher m = date.matcher(timeTabledDateTime);
-
-            train.putString("Key", m.matches() ? m.group(1) + m.group(2) + train.getInteger("JourneyDirection") : timeTabledDateTime);
+            Integer siteId = train.getInteger("SiteId");
+            if (siteId != null) {
+                train.putString("Key", Keys.key(siteId, "" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection")));
+            } else {
+                train.putString("Key", Keys.key("" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection")));
+            }
         });
 
         List<String> keyList = stream(trains.spliterator(), false)
