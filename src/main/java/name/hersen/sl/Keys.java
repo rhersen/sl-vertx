@@ -18,22 +18,16 @@ public class Keys {
         return m.matches() ? m.group(1) + m.group(2) + journeyDirection : timeTabledDateTime;
     }
 
-    public static String key(int siteId, String timeTabledDateTime, int journeyDirection) {
-        if (range(9525, 9529).noneMatch(i -> i == siteId) || journeyDirection != 2) {
-            return key(timeTabledDateTime, journeyDirection);
+    public static String key(int site, String time, int dir) {
+        if (range(9525, 9529).noneMatch(i -> i == site)) {
+            return key(time, dir);
         }
 
         try {
-            return "S" + hhmm.format(parse(timeTabledDateTime).plusMinutes(offset(siteId))) + journeyDirection;
+            return "S" + hhmm.format(parse(time).plusMinutes(dir == 1 ? (9532 - site) * -3 : (9531 - site) * 3)) + dir;
         } catch (DateTimeParseException e) {
-            return timeTabledDateTime;
+            return time;
         }
     }
 
-    private static int offset(int siteId) {
-        if (siteId == 9528) return 9;
-        if (siteId == 9527) return 12;
-        if (siteId == 9526) return 15;
-        return 18;
-    }
 }

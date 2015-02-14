@@ -25,6 +25,11 @@ public class KeysTest {
     }
 
     @Test
+    public void southbound() {
+        assertEquals("S18191", Keys.key(9528, "2015-02-11T18:31:00", 1));
+    }
+
+    @Test
     public void doesntCrashIfStringDoesntMatch() {
         assertEquals("21:01:00", Keys.key("21:01:00", 2));
     }
