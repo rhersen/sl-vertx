@@ -64,9 +64,9 @@ public class TrafiklabFilter {
             JsonObject train = (JsonObject) o;
             Integer siteId = train.getInteger("SiteId");
             if (siteId != null) {
-                train.putString("Key", Keys.key(siteId, "" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection")));
+                train.putString("Key", Keys.key(siteId, "" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection"), "" + train.getString("Destination")));
             } else {
-                train.putString("Key", Keys.key("" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection")));
+                train.putString("Key", Keys.key("" + train.getString("TimeTabledDateTime"), train.getInteger("JourneyDirection"), "" + train.getString("Destination")));
             }
         });
 
